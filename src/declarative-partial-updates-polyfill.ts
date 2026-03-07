@@ -94,7 +94,16 @@
     for (const mutation of mutations) {
       for (const node of Array.from(mutation.addedNodes)) {
         if (node instanceof HTMLTemplateElement && node.hasAttribute('for')) {
+          // New template - process that
           processTemplate(node);
+        }
+        else if (node instanceof HTMLElement && node.hasAttribute('marker')) {
+          // New marker - process any previously inserted templates for it
+          document
+            .querySelectorAll('template[for]')
+            .forEach((t) => {
+              processTemplate(t as HTMLTemplateElement)
+             });
         }
       }
     }

@@ -99,7 +99,7 @@
     document
       .getElementById('add-new-template')
       .addEventListener('click', () => {
-        const maxSectionNumber = Array.from(
+        let maxSectionNumber = Array.from(
           document.querySelectorAll('section[marker]')
         )
           .map((s) => s.getAttribute('marker'))
@@ -107,6 +107,11 @@
             const number = parseInt(marker.replace('gallery', ''));
             return Math.max(max, number);
           }, 0);
+
+        // Handle template being inserted first
+        if (document.querySelector(`section[marker=gallery${maxSectionNumber}`).innerText!='Loading...') {
+          maxSectionNumber++;
+        }
 
         console.log('maxSectionNumber', maxSectionNumber);
         const template = document.createElement('template');
