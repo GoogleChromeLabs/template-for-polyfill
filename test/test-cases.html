@@ -16,35 +16,38 @@
   </head>
 
   <body>
-    <h1>Test 1</h1>
+    <h1>Patching test cases</h1>
+
+    <h2>Test 1 - simple marker</h2>
     <section marker="gallery1"><?marker></section>
     <template for="gallery1">
       Actual <strong>gallery1</strong> content
     </template>
 
-    <h1>Test 2</h1>
+    <h2>Test 2 - simple start and end</h2>
     <section marker="gallery2"><?start>Loading...<?end></section>
     <template for="gallery2">
       Actual <strong>gallery2</strong> content
     </template>
 
-    <h1>Test 3</h1>
+    <h2>Test 3 - named start</h2>
     <section marker="gallery3"><?start name="part">Loading...<?end></section>
     <template for="gallery3#part">
       Actual <strong>gallery3</strong> content
     </template>
 
-    <h1>Test 4</h1>
+    <h2>Test 4 - same level nested inner</h2>
     <p>Should leave first loading...</p>
     <section marker="gallery4">
       <?start name="all"> Loading...<br />
-      <?start name="part">Loading inner...<?end> <?end>
+      <?start name="part">Loading inner...<?end>
+      <?end>
     </section>
     <template for="gallery4#part">
       Actual <strong>gallery4</strong> content
     </template>
 
-    <h1>Test 5</h1>
+    <h2>Test 5 - div nested inner</h2>
     <p>Should leave first loading...</p>
     <section marker="gallery5">
       <?start name="all"> Loading...<br />
@@ -55,7 +58,7 @@
       Actual <strong>gallery5</strong> content
     </template>
 
-    <h1>Test 6</h1>
+    <h2>Test 6 - div nested outer</h2>
     <section marker="gallery6">
       <?start name="all"> Loading...<br />
       <div><?start name="part">Loading inner...<?end></div>
@@ -65,28 +68,80 @@
       Actual <strong>gallery6</strong> content
     </template>
 
-    <h1>Test 7</h1>
+    <h2>Test 7 - same level nested outer</h2>
     <section marker="gallery7">
       <?start name="all"> Loading...<br />
-      <?start name="part">Loading inner...<?end> <?end>
+      <?start name="part">Loading inner...<?end>
+      <?end>
     </section>
     <template for="gallery7#all">
       Actual <strong>gallery7</strong> content
     </template>
 
-    <h1>Test 8</h1>
+    <h2>Test 8 - simple missing end</h2>
     <section marker="gallery8"><?start>Loading...</section>
     <template for="gallery8">
       Actual <strong>gallery8</strong> content
     </template>
 
-    <h1>Test 9</h1>
+    <h2>Test 9 - same level nested missing outer end</h2>
     <section marker="gallery9">
       <?start name="all"> Loading...<br />
       <?start name="part">Loading inner...<?end>
     </section>
     <template for="gallery9#all">
       Actual <strong>gallery9</strong> content
+    </template>
+
+    <h2>Test 10 - div nested</h2>
+    <p>
+      Should leave first loading...<br>
+      And a "This should remain" at the end
+    </p>
+    <section marker="gallery10">
+      <?start name="all"> Loading...<br />
+      <div>
+        <?start name="part">Loading inner...<?end>
+      </div>
+      This should remain
+      <?end>
+    </section>
+    <template for="gallery10#part">
+      Actual <strong>gallery10</strong> content
+    </template>
+
+    <h2>Test 11 - div nested, no inner end tag</h2>
+    <p>
+      Should leave first loading...<br>
+      And a "This should remain" at the end<br>
+      And should leave final <code>&lt;?end&gt;</code> tag
+    </p>
+    <section marker="gallery11">
+      <?start name="all"> Loading...<br />
+      <div>
+        <?start name="part">Loading inner...
+      </div>
+      This should remain
+      <?end>
+    </section>
+    <template for="gallery11#part">
+      Actual <strong>gallery11</strong> content
+    </template>
+
+    <h2>Test 12 - div nested, no end tags</h2>
+    <p>
+      Should leave first loading...<br>
+      And a "This should remain" at the end
+    </p>
+    <section marker="gallery12">
+      <?start name="all"> Loading...<br />
+      <div>
+        <?start name="part">Loading inner...
+      </div>
+      This should remain
+    </section>
+    <template for="gallery12#part">
+      Actual <strong>gallery12</strong> content
     </template>
 
     <hr />
@@ -107,10 +162,10 @@
         }, 0);
 
       console.log('maxSectionNumber', maxSectionNumber);
-      const header = document.createElement('h1');
-      header.textContent = 'Test ' + (maxSectionNumber + 1);
+      const header = document.createElement('h2');
+      header.textContent = `Test ${maxSectionNumber + 1} - added later`;
       const section = document.createElement('section');
-      section.setAttribute('marker', 'gallery' + (maxSectionNumber + 1));
+      section.setAttribute('marker', `gallery${maxSectionNumber + 1}`);
       section.innerHTML = '<?start>Loading...<?end>';
       document.body.appendChild(header);
       document.body.appendChild(section);
