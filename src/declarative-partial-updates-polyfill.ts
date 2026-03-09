@@ -11,26 +11,68 @@
 
   const processTemplate = (template: HTMLTemplateElement) => {
     const [name, hash] = template.getAttribute('for')?.split('#') || [];
-    const section = document.querySelector(`section[marker="${name}"]`);
+    const markerElement = document.querySelector(`[marker="${name}"]`);
 
-    if (!section) return;
+    if (!markerElement) return;
 
-    // We use a Treewalker instead of regular query selectors to
+    // If the document is still loading and either the template or the marker
+    // is the last element in the DOM then it may be incomplete. Wait for the
+    // next element or Loaded and only then continue.
+    // Note this assumes templates (or markers) are not streamed in after DCL
+    // and only inserted atomically. TBC.
+    if (
+      document.readyState == 'loading' &&
+      !(template.nextElementSibling && markerElement.nextElementSibling)
+    ) {
+      const mutationObserver = new MutationObserver((_, obs) => {
+        if (template.nextElementSibling && markerElement.nextElementSibling) {
+          processTemplate(template);
+          obs.disconnect();
+        }
+      });
+      mutationObserver.observe(document, {childList: true, subtree: true});
+
+      document.addEventListener('DOMContentLoaded', () => {
+        mutationObserver.disconnect();
+        processTemplate(template);
+      }, { once: true});
+      // For now end processing
+      return;
+    }
+
+    // We use a TreeWalker instead of regular query selectors to
+    // handle comments and processing instructions
     const walker = document.createTreeWalker(
-      section,
+      markerElement,
       // Processing Instructions usually are comments in non-supporting
       // browser, but also handle the case of actual Processing Instructions
       // in case browsers ever introduce them for other reasons
       NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_PROCESSING_INSTRUCTION
     );
 
-    let startNode: Comment | null = null;
-    let node: Comment | null;
+    let startNode: Comment | ProcessingInstruction | null = null;
+    let node: Node | null;
     let depth = 0;
     let startNodeDepth = 0;
 
-    while ((node = walker.nextNode() as Comment)) {
-      const data = node.data.trim();
+    while ((node = walker.nextNode())) {
+      let castNode: Comment | ProcessingInstruction | null;
+      let data: string | null;
+
+      if (node.nodeType === Node.COMMENT_NODE) {
+        castNode = node as Comment;
+        data = castNode.data;
+      } else if (node.nodeType === Node.PROCESSING_INSTRUCTION_NODE) {
+        // If the browser supports processing instructions but not markers
+        // then they are in a slightly different format to comments so reformat
+        // them to be the same to make later processing easier.
+        castNode = node as ProcessingInstruction;
+        data = `?${(node as ProcessingInstruction).target}`;
+        if (castNode.data) data = `${data} ${castNode.data}`;
+      } else {
+        // Shouldn't reach here but needed to keep Typescript happy
+        continue;
+      }
 
       // CASE 1: We are looking for a simple marker
       if (data.startsWith('?marker')) {
@@ -40,7 +82,7 @@
 
         if (isMatch) {
           // Simple replacement, no range to track
-          node.replaceWith(template.content.cloneNode(true));
+          castNode.replaceWith(template.content.cloneNode(true));
           template.remove();
           return;
         }
@@ -48,13 +90,16 @@
       // CASE 2: We are looking for the start of a range
       if (data.startsWith('?start')) {
         depth++;
-        const isMatch = hash
-          ? data.includes(`?start name="${hash}"`)
-          : data === '?start';
+        // Only match if we haven't already got a startNode
+        // to handle duplicate names
+        const isMatch =
+          !startNode && hash
+            ? data.includes(`?start name="${hash}"`)
+            : data === '?start';
 
         if (isMatch) {
           // Start of a range found; track it and keep walking
-          startNode = node;
+          startNode = castNode;
           startNodeDepth = depth;
         }
       }
@@ -71,7 +116,7 @@
           let current = startNode.nextSibling;
           while (current && current !== endNode) {
             if (current === endNode) {
-              endNode.remove();
+              castNode.remove();
               break;
             }
             const next = current.nextSibling;
@@ -80,7 +125,7 @@
           }
 
           // Replace startNode with content and clean up
-          startNode.replaceWith(template.content.cloneNode(true));
+          castNode.replaceWith(template.content.cloneNode(true));
           template.remove();
           return;
         } else {
@@ -97,7 +142,6 @@
     // endNode, but can process the startNode (without removing the missing
     // endNode).
     if (depth > 0 && startNode) {
-
       // Remove everything between startNode and the closing tag of the element
       let current = startNode.nextSibling;
       while (current) {

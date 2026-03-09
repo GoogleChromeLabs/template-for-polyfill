@@ -40,8 +40,7 @@
     <p>Should leave first loading...</p>
     <section marker="gallery4">
       <?start name="all"> Loading...<br />
-      <?start name="part">Loading inner...<?end>
-      <?end>
+      <?start name="part">Loading inner...<?end> <?end>
     </section>
     <template for="gallery4#part">
       Actual <strong>gallery4</strong> content
@@ -71,8 +70,7 @@
     <h2>Test 7 - same level nested outer</h2>
     <section marker="gallery7">
       <?start name="all"> Loading...<br />
-      <?start name="part">Loading inner...<?end>
-      <?end>
+      <?start name="part">Loading inner...<?end> <?end>
     </section>
     <template for="gallery7#all">
       Actual <strong>gallery7</strong> content
@@ -95,16 +93,13 @@
 
     <h2>Test 10 - div nested</h2>
     <p>
-      Should leave first loading...<br>
+      Should leave first loading...<br />
       And a "This should remain" at the end
     </p>
     <section marker="gallery10">
       <?start name="all"> Loading...<br />
-      <div>
-        <?start name="part">Loading inner...<?end>
-      </div>
-      This should remain
-      <?end>
+      <div><?start name="part">Loading inner...<?end></div>
+      This should remain <?end>
     </section>
     <template for="gallery10#part">
       Actual <strong>gallery10</strong> content
@@ -112,17 +107,14 @@
 
     <h2>Test 11 - div nested, no inner end tag</h2>
     <p>
-      Should leave first loading...<br>
-      And a "This should remain" at the end<br>
+      Should leave first loading...<br />
+      And a "This should remain" at the end<br />
       And should leave final <code>&lt;?end&gt;</code> tag
     </p>
     <section marker="gallery11">
       <?start name="all"> Loading...<br />
-      <div>
-        <?start name="part">Loading inner...
-      </div>
-      This should remain
-      <?end>
+      <div><?start name="part">Loading inner...</div>
+      This should remain <?end>
     </section>
     <template for="gallery11#part">
       Actual <strong>gallery11</strong> content
@@ -130,73 +122,84 @@
 
     <h2>Test 12 - div nested, no end tags</h2>
     <p>
-      Should leave first loading...<br>
+      Should leave first loading...<br />
       And a "This should remain" at the end
     </p>
     <section marker="gallery12">
       <?start name="all"> Loading...<br />
-      <div>
-        <?start name="part">Loading inner...
-      </div>
+      <div><?start name="part">Loading inner...</div>
       This should remain
     </section>
     <template for="gallery12#part">
       Actual <strong>gallery12</strong> content
     </template>
 
+    <h2>Test 13 - duplicate names</h2>
+    <section marker="gallery13">
+      <?start name="all"> Loading...<br />
+      <div><?start name="all">Loading inner...<?end></div>
+      <?end>
+    </section>
+    <template for="gallery13#all">
+      Actual <strong>gallery13</strong> content
+    </template>
+
     <hr />
 
     <button id="add-new-section">Add new section</button>
     <button id="add-new-template">Add new template</button>
+
+    <script>
+      document
+        .getElementById('add-new-section')
+        .addEventListener('click', () => {
+          const maxSectionNumber = Array.from(
+            document.querySelectorAll('section[marker]')
+          )
+            .map((s) => s.getAttribute('marker'))
+            .reduce((max, marker) => {
+              const number = parseInt(marker.replace('gallery', ''));
+              return Math.max(max, number);
+            }, 0);
+
+          console.log('maxSectionNumber', maxSectionNumber);
+          const header = document.createElement('h2');
+          header.textContent = `Test ${maxSectionNumber + 1} - added later`;
+          const section = document.createElement('section');
+          section.setAttribute('marker', `gallery${maxSectionNumber + 1}`);
+          section.innerHTML = '<?start>Loading...<?end>';
+          document.body.appendChild(header);
+          document.body.appendChild(section);
+        });
+
+      document
+        .getElementById('add-new-template')
+        .addEventListener('click', () => {
+          let maxSectionNumber = Array.from(
+            document.querySelectorAll('section[marker]')
+          )
+            .map((s) => s.getAttribute('marker'))
+            .reduce((max, marker) => {
+              const number = parseInt(marker.replace('gallery', ''));
+              return Math.max(max, number);
+            }, 0);
+
+          // Handle template being inserted first
+          if (
+            document.querySelector(`section[marker=gallery${maxSectionNumber}`)
+              .innerText != 'Loading...'
+          ) {
+            maxSectionNumber++;
+          }
+
+          console.log('maxSectionNumber', maxSectionNumber);
+          const template = document.createElement('template');
+          template.setAttribute('for', 'gallery' + maxSectionNumber);
+          template.innerHTML =
+            'Actual <strong>gallery' + maxSectionNumber + '</strong> content';
+          document.body.appendChild(template);
+        });
+    </script>
+    <!-- To do - add a test for streaming -->
   </body>
-
-  <script>
-    document.getElementById('add-new-section').addEventListener('click', () => {
-      const maxSectionNumber = Array.from(
-        document.querySelectorAll('section[marker]')
-      )
-        .map((s) => s.getAttribute('marker'))
-        .reduce((max, marker) => {
-          const number = parseInt(marker.replace('gallery', ''));
-          return Math.max(max, number);
-        }, 0);
-
-      console.log('maxSectionNumber', maxSectionNumber);
-      const header = document.createElement('h2');
-      header.textContent = `Test ${maxSectionNumber + 1} - added later`;
-      const section = document.createElement('section');
-      section.setAttribute('marker', `gallery${maxSectionNumber + 1}`);
-      section.innerHTML = '<?start>Loading...<?end>';
-      document.body.appendChild(header);
-      document.body.appendChild(section);
-    });
-
-    document
-      .getElementById('add-new-template')
-      .addEventListener('click', () => {
-        let maxSectionNumber = Array.from(
-          document.querySelectorAll('section[marker]')
-        )
-          .map((s) => s.getAttribute('marker'))
-          .reduce((max, marker) => {
-            const number = parseInt(marker.replace('gallery', ''));
-            return Math.max(max, number);
-          }, 0);
-
-        // Handle template being inserted first
-        if (
-          document.querySelector(`section[marker=gallery${maxSectionNumber}`)
-            .innerText != 'Loading...'
-        ) {
-          maxSectionNumber++;
-        }
-
-        console.log('maxSectionNumber', maxSectionNumber);
-        const template = document.createElement('template');
-        template.setAttribute('for', 'gallery' + maxSectionNumber);
-        template.innerHTML =
-          'Actual <strong>gallery' + maxSectionNumber + '</strong> content';
-        document.body.appendChild(template);
-      });
-  </script>
 </html>
