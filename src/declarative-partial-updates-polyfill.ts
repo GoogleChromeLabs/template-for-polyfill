@@ -67,17 +67,18 @@
       NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_PROCESSING_INSTRUCTION
     );
 
-    let startNode: Comment | ProcessingInstruction | null = null;
+    let startNode: Node | null = null;
     let node: Node | null;
     let depth = 0;
     let startNodeDepth = 0;
 
     const replaceContentWithTemplate = (
+      type: string,
       templateNode: HTMLTemplateElement,
-      startNode: Comment | ProcessingInstruction,
-      endNode: HTMLElement | null = null
+      startNode: Node,
+      endNode: Node | null = null
     ): void => {
-      if (endNode) {
+      if (type !== 'marker') {
         // Remove every sibling from startNode until endNode.
         // If we don't hit the end node, then we'll remove all siblings.
         let current = startNode.nextSibling;
@@ -91,28 +92,25 @@
           current = next;
         }
       }
-      startNode.replaceWith(template.content.cloneNode(true));
+      (startNode as HTMLElement).replaceWith(template.content.cloneNode(true));
       templateNode.remove();
     };
 
     while ((node = walker.nextNode())) {
-      let castNode: Comment | ProcessingInstruction | null;
       let data: string | null;
 
       if (node.nodeType === Node.COMMENT_NODE) {
         // Processing Instructions are usually handled as comments if patching
         // is not supported. Patching adds Processing Instructions to HTML for
         // the first time.
-        castNode = node as Comment;
-        data = castNode.data;
+        data = (node as Comment).data;
       } else if (node.nodeType === Node.PROCESSING_INSTRUCTION_NODE) {
         // If the browser supports processing instructions but not patching
         // (currently no browsers support this, but never say never!)
         // then they are in a slightly different format to comments so reformat
         // them to be the same to make later processing easier.
-        castNode = node as ProcessingInstruction;
         data = `?${(node as ProcessingInstruction).target}`;
-        if (castNode.data) data = `${data} ${castNode.data}`;
+        if ((node as ProcessingInstruction).data) data = `${data} ${(node as ProcessingInstruction).data}`;
       } else {
         // Shouldn't reach here but needed to keep Typescript happy
         continue;
@@ -126,7 +124,7 @@
 
         if (isMatch) {
           // Simple replacement, no range to track
-          replaceContentWithTemplate(template, castNode);
+          replaceContentWithTemplate('marker', template, node);
           return;
         }
       }
@@ -142,7 +140,7 @@
 
         if (isMatch) {
           // Start of a range found; track it and keep walking
-          startNode = castNode;
+          startNode = node;
           startNodeDepth = depth;
         }
       }
@@ -152,11 +150,13 @@
         // this start tag. We'd only be less than if our start tag was nested
         // in other HTML elements and missing an end tag.
         if (depth <= startNodeDepth) {
-          const endNode = startNode.parentElement === node.parentElement ? node : startNode;
+          // Check if the endNode is for this one (it might be missing)
+          const endNode = startNode.parentElement === node.parentElement ? node : null;
           replaceContentWithTemplate(
+            'range',
             template,
             startNode,
-            endNode as HTMLElement
+            endNode
           );
           return;
         } else {
@@ -174,7 +174,7 @@
     // missing endNode).
     if (depth > 0 && startNode) {
       // Remove everything between startNode and the closing tag of the element
-      replaceContentWithTemplate(template, startNode, template);
+      replaceContentWithTemplate('range', template, startNode);
     }
   };
 

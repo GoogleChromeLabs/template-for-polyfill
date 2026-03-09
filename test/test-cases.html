@@ -37,8 +37,8 @@
     </template>
 
     <h2>Test 4 - same level nested inner</h2>
-    <p>Should leave first loading...</p>
     <section marker="gallery4">
+      <p>Should leave first loading...</p>
       <?start name="all"> Loading...<br />
       <?start name="part">Loading inner...<?end> <?end>
     </section>
@@ -47,8 +47,8 @@
     </template>
 
     <h2>Test 5 - div nested inner</h2>
-    <p>Should leave first loading...</p>
     <section marker="gallery5">
+      <p>Should leave first loading...</p>
       <?start name="all"> Loading...<br />
       <div><?start name="part">Loading inner...<?end></div>
       <?end>
@@ -92,11 +92,11 @@
     </template>
 
     <h2>Test 10 - div nested</h2>
-    <p>
-      Should leave first loading...<br />
-      And a "This should remain" at the end
-    </p>
     <section marker="gallery10">
+      <p>
+        Should leave first loading...<br />
+        And a "This should remain" at the end
+      </p>
       <?start name="all"> Loading...<br />
       <div><?start name="part">Loading inner...<?end></div>
       This should remain <?end>
@@ -106,12 +106,12 @@
     </template>
 
     <h2>Test 11 - div nested, no inner end tag</h2>
-    <p>
-      Should leave first loading...<br />
-      And a "This should remain" at the end<br />
-      And should leave final <code>&lt;?end&gt;</code> tag
-    </p>
     <section marker="gallery11">
+      <p>
+        Should leave first loading...<br />
+        And a "This should remain" at the end<br />
+        And should leave final <code>&lt;?end&gt;</code> tag
+      </p>
       <?start name="all"> Loading...<br />
       <div><?start name="part">Loading inner...</div>
       This should remain <?end>
@@ -121,11 +121,11 @@
     </template>
 
     <h2>Test 12 - div nested, no end tags</h2>
-    <p>
-      Should leave first loading...<br />
-      And a "This should remain" at the end
-    </p>
     <section marker="gallery12">
+      <p>
+        Should leave first loading...<br />
+        And a "This should remain" at the end
+      </p>
       <?start name="all"> Loading...<br />
       <div><?start name="part">Loading inner...</div>
       This should remain
