@@ -21,7 +21,7 @@
     "build:ts": "tsc -b",
     "build:js": "rollup -c",
     "clean": "rm -rf dist tsconfig.tsbuildinfo",
-    "format": "prettier \"**/*.{cjs,html,js,ts}\" --write --ignore-pattern node_modules",
+    "format": "prettier \"**/*.{cjs,html,js,ts}\" --write",
     "lint": "eslint --fix .",
     "postversion": "git push --follow-tags",
     "prepare": "husky",

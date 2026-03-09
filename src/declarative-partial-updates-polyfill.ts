@@ -82,6 +82,20 @@
         }
       }
     }
+
+    if (depth > 0 && startNode) {
+      // Missing endNode
+
+      // Remove everything between startNode and the closing tag of the element
+      let current = startNode.nextSibling;
+      while (current) {
+        const next = current.nextSibling;
+        current.remove();
+        current = next;
+      }
+      startNode.replaceWith(template.content.cloneNode(true));
+      template.remove();
+    }
   };
 
   // Handle existing templates in the HTML
@@ -96,14 +110,11 @@
         if (node instanceof HTMLTemplateElement && node.hasAttribute('for')) {
           // New template - process that
           processTemplate(node);
-        }
-        else if (node instanceof HTMLElement && node.hasAttribute('marker')) {
+        } else if (node instanceof HTMLElement && node.hasAttribute('marker')) {
           // New marker - process any previously inserted templates for it
-          document
-            .querySelectorAll('template[for]')
-            .forEach((t) => {
-              processTemplate(t as HTMLTemplateElement)
-             });
+          document.querySelectorAll('template[for]').forEach((t) => {
+            processTemplate(t as HTMLTemplateElement);
+          });
         }
       }
     }

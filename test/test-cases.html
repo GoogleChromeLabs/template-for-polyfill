@@ -74,6 +74,21 @@
       Actual <strong>gallery7</strong> content
     </template>
 
+    <h1>Test 8</h1>
+    <section marker="gallery8"><?start>Loading...</section>
+    <template for="gallery8">
+      Actual <strong>gallery8</strong> content
+    </template>
+
+    <h1>Test 9</h1>
+    <section marker="gallery9">
+      <?start name="all"> Loading...<br />
+      <?start name="part">Loading inner...<?end>
+    </section>
+    <template for="gallery9#all">
+      Actual <strong>gallery9</strong> content
+    </template>
+
     <hr />
 
     <button id="add-new-section">Add new section</button>
@@ -114,7 +129,10 @@
           }, 0);
 
         // Handle template being inserted first
-        if (document.querySelector(`section[marker=gallery${maxSectionNumber}`).innerText!='Loading...') {
+        if (
+          document.querySelector(`section[marker=gallery${maxSectionNumber}`)
+            .innerText != 'Loading...'
+        ) {
           maxSectionNumber++;
         }
 
