@@ -15,28 +15,45 @@
 
     if (!markerElement) return;
 
+    // Handle streaming parser.
+    //
     // If the document is still loading and either the template or the marker
     // is the last element in the DOM then it may be incomplete. Wait for the
-    // next element or Loaded and only then continue.
-    // Note this assumes templates (or markers) are not streamed in after DCL
-    // and only inserted atomically. TBC.
+    // next element OR the end of the HTML to be reached and only then continue.
+    // Prefer readystatechange over DOMContentLoaded so we can start earlier
+    //
+    // Note this assumes templates (or markers) elements are not streamed in by
+    // scripts and only inserted atomically.
     if (
       document.readyState == 'loading' &&
       !(template.nextElementSibling && markerElement.nextElementSibling)
     ) {
-      const mutationObserver = new MutationObserver((_, obs) => {
+      let mutationObserver: MutationObserver;
+
+      // Make sure to tidy up after ourselves if one runs.
+      const processAndCleanup = () => {
+        mutationObserver?.disconnect();
+        document.removeEventListener('readystatechange', handleStateChange);
+        processTemplate(template);
+      };
+
+      mutationObserver = new MutationObserver(() => {
+        // Only process if both template and marker are not the last elements
         if (template.nextElementSibling && markerElement.nextElementSibling) {
-          processTemplate(template);
-          obs.disconnect();
+          processAndCleanup;
         }
       });
       mutationObserver.observe(document, {childList: true, subtree: true});
 
-      document.addEventListener('DOMContentLoaded', () => {
-        mutationObserver.disconnect();
-        processTemplate(template);
-      }, { once: true});
-      // For now end processing
+      const handleStateChange = () => {
+        // Only process if end of HTML reached
+        if (document.readyState === 'interactive') {
+          processAndCleanup();
+        }
+      };
+      document.addEventListener('readystatechange', handleStateChange);
+
+      // For now end processTemplate and let one of above handle this.
       return;
     }
 
@@ -55,15 +72,42 @@
     let depth = 0;
     let startNodeDepth = 0;
 
+    const replaceContentWithTemplate = (
+      templateNode: HTMLTemplateElement,
+      startNode: Comment | ProcessingInstruction,
+      endNode: HTMLElement | null = null
+    ): void => {
+      if (endNode) {
+        // Remove every sibling from startNode until endNode.
+        // If we don't hit the end node, then we'll remove all siblings.
+        let current = startNode.nextSibling;
+        while (current) {
+          if (current === endNode) {
+            current.remove();
+            break;
+          }
+          const next = current.nextSibling;
+          current.remove();
+          current = next;
+        }
+      }
+      startNode.replaceWith(template.content.cloneNode(true));
+      templateNode.remove();
+    };
+
     while ((node = walker.nextNode())) {
       let castNode: Comment | ProcessingInstruction | null;
       let data: string | null;
 
       if (node.nodeType === Node.COMMENT_NODE) {
+        // Processing Instructions are usually handled as comments if patching
+        // is not supported. Patching adds Processing Instructions to HTML for
+        // the first time.
         castNode = node as Comment;
         data = castNode.data;
       } else if (node.nodeType === Node.PROCESSING_INSTRUCTION_NODE) {
-        // If the browser supports processing instructions but not markers
+        // If the browser supports processing instructions but not patching
+        // (currently no browsers support this, but never say never!)
         // then they are in a slightly different format to comments so reformat
         // them to be the same to make later processing easier.
         castNode = node as ProcessingInstruction;
@@ -82,8 +126,7 @@
 
         if (isMatch) {
           // Simple replacement, no range to track
-          castNode.replaceWith(template.content.cloneNode(true));
-          template.remove();
+          replaceContentWithTemplate(template, castNode);
           return;
         }
       }
@@ -109,24 +152,12 @@
         // this start tag. We'd only be less than if our start tag was nested
         // in other HTML elements and missing an end tag.
         if (depth <= startNodeDepth) {
-          const endNode = node;
-
-          // Remove every sibling from startNode until endNode.
-          // If we don't hit the end node, then we'll remove all siblings.
-          let current = startNode.nextSibling;
-          while (current && current !== endNode) {
-            if (current === endNode) {
-              castNode.remove();
-              break;
-            }
-            const next = current.nextSibling;
-            current.remove();
-            current = next;
-          }
-
-          // Replace startNode with content and clean up
-          castNode.replaceWith(template.content.cloneNode(true));
-          template.remove();
+          const endNode = startNode.parentElement === node.parentElement ? node : startNode;
+          replaceContentWithTemplate(
+            template,
+            startNode,
+            endNode as HTMLElement
+          );
           return;
         } else {
           // If we see an end tag but we're at a deeper depth then decrement
@@ -138,19 +169,12 @@
       }
     }
 
-    // If we reach the end and still are depth > 0 then we're missing
-    // endNode, but can process the startNode (without removing the missing
-    // endNode).
+    // If we reach the end of the TreeWalker and still are depth > 0 then we're
+    // missing endNode, but can process the startNode (without removing the
+    // missing endNode).
     if (depth > 0 && startNode) {
       // Remove everything between startNode and the closing tag of the element
-      let current = startNode.nextSibling;
-      while (current) {
-        const next = current.nextSibling;
-        current.remove();
-        current = next;
-      }
-      startNode.replaceWith(template.content.cloneNode(true));
-      template.remove();
+      replaceContentWithTemplate(template, startNode, template);
     }
   };
 
