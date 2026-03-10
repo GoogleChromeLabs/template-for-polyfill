@@ -22,7 +22,7 @@ jobs:
       - name: Run server
         run: npm run test:server &
       - name: Run tests for chrome
-        run: npm run test -- --browsers=chrome
+        run: npm run test:unit -- --browsers=chrome
   firefox-tests:
     name: Run Firefox tests
     # Runs best on macos for CI as linux requires extra setup
@@ -37,7 +37,7 @@ jobs:
       - name: Run server
         run: npm run test:server &
       - name: Run tests for firefox
-        run: npm run test -- --browsers=firefox
+        run: npm run test:unit -- --browsers=firefox
   safari-tests:
     name: Run Safari tests
     # Requires macos
@@ -52,4 +52,4 @@ jobs:
       - name: Run server
         run: npm run test:server &
       - name: Run tests for safari
-        run: npm run test -- --browsers=safari
+        run: npm run test:unit -- --browsers=safari
