@@ -31,7 +31,9 @@
     "release:minor": "npm version minor -m 'Release v%s' && npm publish",
     "release:patch": "npm version patch -m 'Release v%s' && npm publish",
     "size": "brotli-size --raw dist/declarative-partial-updates-polyfill.js",
-    "test": "wdio",
+    "test": "run-p test:server test:unit",
+    "test:server": "node test/server/server.js",
+    "test:unit": "wdio",
     "watch": "run-p watch:*",
     "watch:ts": "tsc -b -w",
     "watch:js": "rollup -c -w"
@@ -66,12 +68,13 @@
     "@eslint/js": "^9.21.0",
     "@rollup/plugin-babel": "^7.0.0",
     "@rollup/plugin-terser": "^1.0.0",
-    "brotli-size-cli": "^1.0.0",
     "@wdio/cli": "^9.23.0",
     "@wdio/local-runner": "^9.23.0",
     "@wdio/mocha-framework": "^9.23.0",
     "@wdio/spec-reporter": "^9.20.0",
+    "brotli-size-cli": "^1.0.0",
     "eslint": "^10.0.2",
+    "fs-extra": "^11.3.4",
     "globals": "^16.0.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.3",
@@ -84,5 +87,8 @@
   "lint-staged": {
     "**/*.js": "eslint --fix",
     "**/*.{cjs,js,ts,json}": "prettier --write"
+  },
+  "dependencies": {
+    "fs-extra": "^11.3.4"
   }
 }

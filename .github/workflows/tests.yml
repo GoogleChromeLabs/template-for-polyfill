@@ -19,6 +19,8 @@ jobs:
         run: npm install
       - name: Build
         run: npm run build
+      - name: Run server
+        run: npm run test:server &
       - name: Run tests for chrome
         run: npm run test -- --browsers=chrome
   firefox-tests:
@@ -32,6 +34,8 @@ jobs:
         run: npm install
       - name: Build
         run: npm run build
+      - name: Run server
+        run: npm run test:server &
       - name: Run tests for firefox
         run: npm run test -- --browsers=firefox
   safari-tests:
@@ -45,5 +49,7 @@ jobs:
         run: npm install
       - name: Build
         run: npm run build
+      - name: Run server
+        run: npm run test:server &
       - name: Run tests for safari
         run: npm run test -- --browsers=safari

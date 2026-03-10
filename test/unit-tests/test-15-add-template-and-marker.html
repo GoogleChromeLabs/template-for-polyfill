@@ -81,8 +81,8 @@
           window.testActual = document.querySelector('section[marker="gallery1"]').innerHTML;
           window.testExpected = 'Actual <strong>gallery1</strong> content';
           document.querySelector('#output').textContent = `Test result: ${window.testActual === window.testExpected ? 'PASS' : 'FAIL'}`;
-        }, 0);
-      }, 0);
+        }, 50);
+      }, 50);
     });
   </script>
 </body>

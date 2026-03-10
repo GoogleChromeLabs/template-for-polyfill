@@ -33,13 +33,19 @@ You can run `npm run watch` to continuously build the project as you make change
 
 ### Testing
 
-To test the full suite run `npm run test`.
+To test the full suite run:
+
+- `npm run test:server`
+
+And then in a separate terminal:
+
+- `npm run test:unit`
 
 To test a subset of browsers or tests, run commands like the following:
 
-- `npm run test -- --browsers=chrome`
-- `npm run test -- --browsers=chrome --tests=test-01`
-- `npm run test -- --browsers=chrome --tests=nested`
+- `npm run test:unit -- --browsers=chrome`
+- `npm run test:unit -- --browsers=chrome --tests=test-01`
+- `npm run test:unit -- --browsers=chrome --tests=nested`
 
 New tests should be added for all new functionality.
 

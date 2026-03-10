@@ -26,19 +26,18 @@ describe('Declarative Partial Updates Polyfill Unit Tests', function () {
 
   files.forEach((file) => {
     it(`should pass ${file}`, async () => {
-      const filePath = path.join(unitTestsDir, file);
-      const fileUrl = `file://${filePath}`;
+      const fileUrl = `http://localhost:9090/test/unit-tests/${file}`;
 
       await browser.url(fileUrl);
 
-      // Wait for testResults to be present
+      // Wait for testActual to be present
       await browser.waitUntil(
         async () => {
           return await browser.execute(() => window.testActual !== undefined);
         },
         {
           timeout: 5000,
-          timeoutMsg: `Timed out waiting for testResults in ${file}`,
+          timeoutMsg: `Timed out waiting for testActual in ${file}`,
         }
       );
 
