@@ -30,10 +30,12 @@
   <template for="gallery0#part">
     Actual <strong>gallery0</strong> content
   </template>
-  <script type="module">
-    window.testActual = document.querySelector('section[marker="gallery0"]').innerHTML;
-    window.testExpected = `\n    <p>\n      Should leave first loading...<br>\n      And a "This should remain" at the end\n    </p>\n    <!--?start name="all"--> Loading...<br>\n      <div>\n    Actual <strong>gallery0</strong> content\n  </div>\n      This should remain\n    <!--?end-->\n  `;
-    document.querySelector('#output').textContent = `Test result: ${window.testActual === window.testExpected ? 'PASS' : 'FAIL'}`;
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      window.testActual = document.querySelector('section[marker="gallery0"]').innerHTML;
+      window.testExpected = `\n    <p>\n      Should leave first loading...<br>\n      And a "This should remain" at the end\n    </p>\n    <!--?start name="all"--> Loading...<br>\n      <div>\n    Actual <strong>gallery0</strong> content\n  </div>\n      This should remain\n    <!--?end-->\n  `;
+      document.querySelector('#output').textContent = `Test result: ${window.testActual === window.testExpected ? 'PASS' : 'FAIL'}`;
+    });
   </script>
 </body>
 </html>

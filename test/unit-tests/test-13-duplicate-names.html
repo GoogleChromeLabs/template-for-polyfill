@@ -26,10 +26,12 @@
     Actual <strong>gallery</strong> content
   </template>
 
-  <script type="module">
-    window.testActual = document.querySelector('section[marker="gallery"]').innerHTML;
-    window.testExpected = '\n    \n    Actual <strong>gallery</strong> content\n  \n  ';
-    document.querySelector('#output').textContent = `Test result: ${window.testActual === window.testExpected ? 'PASS' : 'FAIL'}`;
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      window.testActual = document.querySelector('section[marker="gallery"]').innerHTML;
+      window.testExpected = '\n    \n    Actual <strong>gallery</strong> content\n  \n  ';
+      document.querySelector('#output').textContent = `Test result: ${window.testActual === window.testExpected ? 'PASS' : 'FAIL'}`;
+    });
   </script>
 </body>
 </html>

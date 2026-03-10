@@ -75,7 +75,7 @@
         // Only process if both template and marker are not the last elements
         // (or one of them might still be streaming)
         if (template.nextElementSibling && markerElement.nextElementSibling) {
-          processAndCleanup;
+          processAndCleanup();
         }
       });
       mutationObserver.observe(document, {childList: true, subtree: true});
@@ -126,8 +126,10 @@
       }
 
       // We should now have a processingInstruction beginning with `?`
-      if (!processingInstructionText || processingInstructionText.length <= 1)
-        return;
+      // If not, then ignore and carry on to the next node.
+      if (!processingInstructionText || processingInstructionText.length <= 1) {
+        continue;
+      }
 
       // CASE 1: We are looking at a simple marker
       if (processingInstructionText.startsWith('?marker')) {

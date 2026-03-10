@@ -24,10 +24,12 @@
     <template for="gallery#all">
       Actual <strong>gallery</strong> content
     </template>
-    <script type="module">
+    <script>
+    window.addEventListener('DOMContentLoaded', () => {
       window.testActual = document.querySelector('section[marker="gallery"]').innerHTML.trim();
       window.testExpected = 'Actual <strong>gallery</strong> content';
       document.querySelector('#output').textContent = `Test result: ${window.testActual === window.testExpected ? 'PASS' : 'FAIL'}`;
-    </script>
+    });
+  </script>
   </body>
 </html>

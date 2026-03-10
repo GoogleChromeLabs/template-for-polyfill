@@ -72,16 +72,18 @@
       });
   </script>
 
-  <script type="module">
-    document.querySelector('button[id="add-new-section"]').click();
-    setTimeout(() => {
-      document.querySelector('button[id="add-new-template"]').click();
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      document.querySelector('button[id="add-new-section"]').click();
       setTimeout(() => {
-        window.testActual = document.querySelector('section[marker="gallery1"]').innerHTML;
-        window.testExpected = 'Actual <strong>gallery1</strong> content';
-        document.querySelector('#output').textContent = `Test result: ${window.testActual === window.testExpected ? 'PASS' : 'FAIL'}`;
+        document.querySelector('button[id="add-new-template"]').click();
+        setTimeout(() => {
+          window.testActual = document.querySelector('section[marker="gallery1"]').innerHTML;
+          window.testExpected = 'Actual <strong>gallery1</strong> content';
+          document.querySelector('#output').textContent = `Test result: ${window.testActual === window.testExpected ? 'PASS' : 'FAIL'}`;
+        }, 0);
       }, 0);
-    }, 0);
+    });
   </script>
 </body>
 

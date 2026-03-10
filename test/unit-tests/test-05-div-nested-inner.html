@@ -26,10 +26,12 @@
   <template for="gallery#part">
     Actual <strong>gallery</strong> content
   </template>
-  <script type="module">
-    window.testActual = document.querySelector('section[marker="gallery"]').innerHTML.trim();
-    window.testExpected = `<p>Should leave first loading...</p>\n    <!--?start name="all"--> Loading...<br>\n      <div>\n    Actual <strong>gallery</strong> content\n  </div>\n    <!--?end-->`;
-    document.querySelector('#output').textContent = `Test result: ${window.testActual === window.testExpected ? 'PASS' : 'FAIL'}`;
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      window.testActual = document.querySelector('section[marker="gallery"]').innerHTML.trim();
+      window.testExpected = `<p>Should leave first loading...</p>\n    <!--?start name="all"--> Loading...<br>\n      <div>\n    Actual <strong>gallery</strong> content\n  </div>\n    <!--?end-->`;
+      document.querySelector('#output').textContent = `Test result: ${window.testActual === window.testExpected ? 'PASS' : 'FAIL'}`;
+    });
   </script>
 </body>
 </html>

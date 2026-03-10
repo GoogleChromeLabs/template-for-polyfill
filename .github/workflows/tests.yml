@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 jobs:
   chrome-tests:
-    name: Run Chrome e2e tests
+    name: Run Chrome tests
     # Runs best on macos for CI as linux requires extra chrome flags
     runs-on: macos-latest
     steps:
@@ -35,7 +35,7 @@ jobs:
       - name: Run tests for firefox
         run: npm run test -- --browsers=firefox
   safari-tests:
-    name: Run Safari e2e tests
+    name: Run Safari tests
     # Requires macos
     runs-on: macos-latest
     steps:
