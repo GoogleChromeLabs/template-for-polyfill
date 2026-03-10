@@ -25,6 +25,24 @@ This project follows
 
 ## Contribution process
 
+### Build
+
+To build the project run `npm run build`.
+
+You can run `npm run watch` to continuously build the project as you make changes.
+
+### Testing
+
+To test the full suite run `npm run test`.
+
+To test a subset of browsers or tests, run commands like the following:
+
+- `npm run test -- --browsers=chrome`
+- `npm run test -- --browsers=chrome --tests=test-01`
+- `npm run test -- --browsers=chrome --tests=nested`
+
+New tests should be added for all new functionality.
+
 ### Code reviews
 
 All submissions, including submissions by project members, require review. We

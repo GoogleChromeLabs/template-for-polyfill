@@ -1,0 +1,32 @@
+<!doctype html>
+<!--
+ Copyright 2026 Google LLC
+ SPDX-License-Identifier: Apache-2.0
+-->
+
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Test 1 - simple marker</title>
+  <script src="../../dist/declarative-partial-updates-polyfill.js" defer></script>
+</head>
+
+<body>
+  <h1>Test 1 - simple marker</h1>
+  <p id="output"></p>
+
+  <section marker="gallery">
+    <?marker>
+  </section>
+  <template for="gallery">
+    Actual <strong>gallery</strong> content
+  </template>
+  <script type="module">
+    window.testActual = document.querySelector('section[marker="gallery"]').innerHTML.trim();
+    window.testExpected = 'Actual <strong>gallery</strong> content';
+    document.querySelector('#output').textContent = `Test result: ${window.testActual === window.testExpected ? 'PASS' : 'FAIL'}`;
+  </script>
+  </body>
+</html>

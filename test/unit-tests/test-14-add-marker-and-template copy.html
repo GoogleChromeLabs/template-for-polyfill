@@ -1,0 +1,88 @@
+<!doctype html>
+<!--
+ Copyright 2026 Google LLC
+ SPDX-License-Identifier: Apache-2.0
+-->
+
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Test 14 - add marker and template</title>
+  <script src="../../dist/declarative-partial-updates-polyfill.js" defer></script>
+</head>
+
+<body>
+  <h1>Test 14 - add marker and template</h1>
+  <p id="output"></p>
+
+  <button id="add-new-section">Add new section</button>
+  <button id="add-new-template">Add new template</button>
+
+  <script>
+    document
+      .getElementById('add-new-section')
+      .addEventListener('click', () => {
+        const maxSectionNumber = Array.from(
+          document.querySelectorAll('section[marker]')
+        )
+          .map((s) => s.getAttribute('marker'))
+          .reduce((max, marker) => {
+            const number = parseInt(marker.replace('gallery', ''));
+            return Math.max(max, number);
+          }, 0);
+
+        console.log('maxSectionNumber', maxSectionNumber);
+        const header = document.createElement('h2');
+        header.textContent = `Section ${maxSectionNumber + 1} - added later`;
+        const section = document.createElement('section');
+        section.setAttribute('marker', `gallery${maxSectionNumber + 1}`);
+        section.innerHTML = '<?start>Loading...<?end>';
+        document.body.appendChild(header);
+        document.body.appendChild(section);
+      });
+
+    document
+      .getElementById('add-new-template')
+      .addEventListener('click', () => {
+        let maxSectionNumber = Array.from(
+          document.querySelectorAll('section[marker]')
+        )
+          .map((s) => s.getAttribute('marker'))
+          .reduce((max, marker) => {
+            const number = parseInt(marker.replace('gallery', ''));
+            return Math.max(max, number);
+          }, 0);
+
+        // Handle template being inserted first
+        if (
+          document.querySelector(`section[marker=gallery${maxSectionNumber}`)
+            ?.innerText != 'Loading...'
+        ) {
+          maxSectionNumber++;
+        }
+
+        console.log('maxSectionNumber', maxSectionNumber);
+        const template = document.createElement('template');
+        template.setAttribute('for', 'gallery' + maxSectionNumber);
+        template.innerHTML =
+          'Actual <strong>gallery' + maxSectionNumber + '</strong> content';
+        document.body.appendChild(template);
+      });
+  </script>
+
+  <script type="module">
+    document.querySelector('button[id="add-new-section"]').click();
+    setTimeout(() => {
+      document.querySelector('button[id="add-new-template"]').click();
+      setTimeout(() => {
+        window.testActual = document.querySelector('section[marker="gallery1"]').innerHTML;
+        window.testExpected = 'Actual <strong>gallery1</strong> content';
+        document.querySelector('#output').textContent = `Test result: ${window.testActual === window.testExpected ? 'PASS' : 'FAIL'}`;
+      }, 0);
+    }, 0);
+  </script>
+</body>
+
+</html>

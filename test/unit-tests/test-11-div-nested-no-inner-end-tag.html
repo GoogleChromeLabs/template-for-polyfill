@@ -1,0 +1,41 @@
+<!doctype html>
+<!--
+ Copyright 2026 Google LLC
+ SPDX-License-Identifier: Apache-2.0
+-->
+
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Test 11 - div nested, no inner end tag</title>
+  <script src="../../dist/declarative-partial-updates-polyfill.js" defer></script>
+</head>
+
+<body>
+  <h1>Test 11 - div nested, no inner end tag</h1>
+  <p id="output"></p>
+
+  <section marker="gallery1">
+    <p>
+      Should leave first loading...<br>
+      And a "This should remain" at the end<br>
+      And should leave final <code>&lt;?end&gt;</code> tag
+    </p>
+    <?start name="all"> Loading...<br>
+      <div><?start name="part">Loading inner...</div>
+      This should remain
+    <?end>
+  </section>
+  <template for="gallery1#part">
+    Actual <strong>gallery1</strong> content
+  </template>
+
+  <script type="module">
+    window.testActual = document.querySelector('section[marker="gallery1"]').innerHTML;
+    window.testExpected = '\n    <p>\n      Should leave first loading...<br>\n      And a "This should remain" at the end<br>\n      And should leave final <code>&lt;?end&gt;</code> tag\n    </p>\n    <!--?start name="all"--> Loading...<br>\n      <div>\n    Actual <strong>gallery1</strong> content\n  </div>\n      This should remain\n    <!--?end-->\n  ';
+    document.querySelector('#output').textContent = `Test result: ${window.testActual === window.testExpected ? 'PASS' : 'FAIL'}`;
+  </script>
+</body>
+</html>

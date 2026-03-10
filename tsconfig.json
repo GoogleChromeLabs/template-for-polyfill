@@ -2,10 +2,7 @@
   "compilerOptions": {
     "composite": true,
     "declaration": true,
-    "lib": [
-      "ES2015",
-      "DOM"
-    ],
+    "lib": ["ES2015", "DOM"],
     "module": "nodenext",
     "moduleResolution": "nodenext",
     "noFallthroughCasesInSwitch": true,
@@ -19,8 +16,6 @@
     "target": "esnext",
     "tsBuildInfoFile": "./tsconfig.tsbuildinfo"
   },
-  "include": [
-    "src/**/*.ts"
-  ],
+  "include": ["src/**/*.ts"],
   "exclude": []
 }

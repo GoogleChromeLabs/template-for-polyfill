@@ -1,0 +1,35 @@
+<!doctype html>
+<!--
+ Copyright 2026 Google LLC
+ SPDX-License-Identifier: Apache-2.0
+-->
+
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Test 5 - div nested inner</title>
+  <script src="../../dist/declarative-partial-updates-polyfill.js" defer></script>
+</head>
+
+<body>
+  <h1>Test 5 - div nested inner</h1>
+  <p id="output"></p>
+
+  <section marker="gallery">
+    <p>Should leave first loading...</p>
+    <?start name="all"> Loading...<br>
+      <div><?start name="part">Loading inner...<?end></div>
+    <?end>
+  </section>
+  <template for="gallery#part">
+    Actual <strong>gallery</strong> content
+  </template>
+  <script type="module">
+    window.testActual = document.querySelector('section[marker="gallery"]').innerHTML.trim();
+    window.testExpected = `<p>Should leave first loading...</p>\n    <!--?start name="all"--> Loading...<br>\n      <div>\n    Actual <strong>gallery</strong> content\n  </div>\n    <!--?end-->`;
+    document.querySelector('#output').textContent = `Test result: ${window.testActual === window.testExpected ? 'PASS' : 'FAIL'}`;
+  </script>
+</body>
+</html>

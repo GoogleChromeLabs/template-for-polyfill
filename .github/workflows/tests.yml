@@ -1,0 +1,49 @@
+name: Run tests
+permissions:
+  contents: read
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+jobs:
+  chrome-tests:
+    name: Run Chrome e2e tests
+    # Runs best on macos for CI as linux requires extra chrome flags
+    runs-on: macos-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v6
+      - name: NPM install
+        run: npm install
+      - name: Build
+        run: npm run build
+      - name: Run tests for chrome
+        run: npm run test -- --browsers=chrome
+  firefox-tests:
+    name: Run Firefox tests
+    # Runs best on macos for CI as linux requires extra setup
+    runs-on: macos-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v6
+      - name: NPM install
+        run: npm install
+      - name: Build
+        run: npm run build
+      - name: Run tests for firefox
+        run: npm run test -- --browsers=firefox
+  safari-tests:
+    name: Run Safari e2e tests
+    # Requires macos
+    runs-on: macos-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v6
+      - name: NPM install
+        run: npm install
+      - name: Build
+        run: npm run build
+      - name: Run tests for safari
+        run: npm run test -- --browsers=safari

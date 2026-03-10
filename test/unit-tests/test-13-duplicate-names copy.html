@@ -1,0 +1,35 @@
+<!doctype html>
+<!--
+ Copyright 2026 Google LLC
+ SPDX-License-Identifier: Apache-2.0
+-->
+
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Test 13 - duplicate names</title>
+  <script src="../../dist/declarative-partial-updates-polyfill.js" defer></script>
+</head>
+
+<body>
+  <h1>Test 13 - duplicate names</h1>
+  <p id="output"></p>
+
+  <section marker="gallery">
+    <?start name="all"> Loading...<br>
+    <div><?start name="all">Loading inner...<?end></div>
+    <?end>
+  </section>
+  <template for="gallery#all">
+    Actual <strong>gallery</strong> content
+  </template>
+
+  <script type="module">
+    window.testActual = document.querySelector('section[marker="gallery"]').innerHTML;
+    window.testExpected = '\n    \n    Actual <strong>gallery</strong> content\n  \n  ';
+    document.querySelector('#output').textContent = `Test result: ${window.testActual === window.testExpected ? 'PASS' : 'FAIL'}`;
+  </script>
+</body>
+</html>
