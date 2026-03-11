@@ -7,10 +7,12 @@
 import http from 'node:http';
 import fs from 'fs-extra';
 import path from 'node:path';
+import {Readable} from 'node:stream';
 
 const MIME_TYPES = {
   '.js': 'text/javascript',
   '.cjs': 'text/javascript',
+  '.html': 'text/html',
 };
 
 const server = http.createServer(async (req, res) => {
@@ -21,14 +23,43 @@ const server = http.createServer(async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
 
   const root = process.cwd();
-  const filePath = path.join(root, url.pathname);
+  let filePath = path.join(root, url.pathname);
 
-  // GET /test/:view - render nunjucks template
-  const viewMatch = url.pathname.match(/^\/test\/unit-tests\/([^/]+)$/);
-  if (req.method === 'GET' && viewMatch) {
+  // Static file serving
+  // Check if filePath is within root (avoids ../../ escaping)
+  if (!filePath.startsWith(root)) {
+    res.writeHead(403);
+    res.end('Forbidden');
+    return;
+  }
+
+  if (req.method !== 'GET') {
+    res.writeHead(405);
+    res.end('Method not allowed');
+    return;
+  }
+
+  const ext = path.extname(filePath);
+  const contentType = MIME_TYPES[ext] || 'application/octet-stream';
+
+  // Map any /dist/ path to the root dist/ directory
+  if (url.pathname.startsWith('/dist/')) {
     try {
       const content = fs.readFileSync(filePath);
-      res.setHeader('Content-Type', 'text/html');
+      res.end(content);
+    } catch (error) {
+      console.error(error.stack);
+      res.writeHead(500);
+      res.end(error.stack);
+    }
+    return;
+  }
+
+  // GET /test/unit-tests/<test-name>
+  if (url.pathname.startsWith('/test/unit-tests/')) {
+    try {
+      const content = fs.readFileSync(filePath);
+      res.setHeader('Content-Type', contentType);
 
       if (query.delayResponse) {
         res.write(content + '\n');
@@ -47,25 +78,63 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // Static file serving
-  // Check if filePath is within root
-  if (!filePath.startsWith(root)) {
-    res.writeHead(403);
-    res.end('Forbidden');
-    return;
-  }
-  const ext = path.extname(filePath);
-  const contentType = MIME_TYPES[ext] || 'application/octet-stream';
+  if (url.pathname.startsWith('/wpt/')) {
+    fs.readFile(filePath, async (err, data) => {
+      if (err) {
+        if (!url.pathname.startsWith('/wpt/')) {
+          res.writeHead(404);
+          res.end('Not found');
+          return;
+        }
 
-  fs.readFile(filePath, (err, data) => {
-    if (err) {
-      res.writeHead(404);
-      res.end('Not found');
-      return;
-    }
-    res.writeHead(200, {'Content-Type': contentType});
-    res.end(data);
-  });
+        // Try proxying to wpt.live for /wpt/* resources
+        try {
+          const targetPath = url.pathname.slice(4);
+          const wptUrl = `https://wpt.live${targetPath}`;
+          const response = await fetch(wptUrl);
+
+          if (!response.ok) {
+            res.writeHead(404);
+            res.end('Not found on WPT');
+            return;
+          }
+
+          const contentType = response.headers.get('content-type');
+          const cacheControl = response.headers.get('cache-control');
+          res.setHeader(
+            'Content-Type',
+            contentType || 'application/octet-stream'
+          );
+          if (cacheControl) {
+            res.setHeader('Cache-Control', cacheControl);
+          }
+          res.setHeader('Access-Control-Allow-Origin', '*');
+
+          if (contentType && contentType.includes('text/html')) {
+            let text = await response.text();
+            text = text.replaceAll(/ src( *= *)(['"]?)\//g, ' src$1$2/wpt/');
+            text = text.replaceAll(/ href( *= *)(['"]?)\//g, ' href$1$2/wpt/');
+            const polyfillTag =
+              '<script src="/dist/declarative-partial-updates-polyfill.js">' +
+              '</script>';
+            text = text.replace('</title>', `</title>\n${polyfillTag}\n`);
+            res.end(text);
+          } else {
+            // Stream the proxied content
+            Readable.fromWeb(response.body).pipe(res);
+          }
+          return;
+        } catch (proxyErr) {
+          console.error('Proxy error:', proxyErr);
+          res.writeHead(502);
+          res.end('Proxy error');
+          return;
+        }
+      }
+      res.writeHead(200, {'Content-Type': contentType});
+      res.end(data);
+    });
+  }
 });
 
 const port = process.env.PORT || 9090;
