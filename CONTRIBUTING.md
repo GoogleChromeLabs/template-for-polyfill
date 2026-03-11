@@ -37,17 +37,23 @@ To test the full suite run:
 
 - `npm run test:server`
 
-And then in a separate terminal:
+And then in a separate terminal you can test local tests:
 
 - `npm run test:unit`
+
+Or Web Platform Tests (WPTs) (via a proxy which injects the polyfill):
+
+- `npm run test:wpts`
 
 To test a subset of browsers or tests, run commands like the following:
 
 - `npm run test:unit -- --browsers=chrome`
 - `npm run test:unit -- --browsers=chrome --tests=test-01`
 - `npm run test:unit -- --browsers=chrome --tests=nested`
+- `npm run test:wpts -- --browsers=chrome`
+- `npm run test:wpts -- --browsers=chrome --tests=templates`
 
-New tests should be added for all new functionality.
+New tests should be added for all new functionality either locally or via WPTs (preferred).
 
 ### Code reviews
 

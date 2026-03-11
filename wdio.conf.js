@@ -23,6 +23,11 @@ const browsers = argv.browsers
   ? argv.browsers.toLowerCase().split(',')
   : ['chrome', 'firefox', 'safari'];
 
+const suites = {
+  unit: ['test/script/run-unit-tests.js'],
+  wpt: ['test/script/run-wpt-tests.js'],
+};
+
 export const config = {
   //
   // ====================
@@ -46,7 +51,11 @@ export const config = {
   // then the current working directory is where your `package.json` resides, so `wdio`
   // will be called from there.
   //
-  specs: ['test/script/run-unit-tests.js'],
+  specs: Object.values(suites).flat(),
+  //
+  // Define suites to allow running specific sets of tests via `--suite suiteName`
+  //
+  suites: suites,
   // Patterns to exclude.
   exclude: [
     // 'path/to/excluded/files'

@@ -7,13 +7,16 @@
 import http from 'node:http';
 import fs from 'fs-extra';
 import path from 'node:path';
-import {Readable} from 'node:stream';
+import {Readable, Transform} from 'node:stream';
 
 const MIME_TYPES = {
   '.js': 'text/javascript',
   '.cjs': 'text/javascript',
   '.html': 'text/html',
 };
+
+const TESTHARNESS_RE =
+  /<script( +)src=(['"]?)\/wpt\/resources\/testharness\.js\2><\/script>/;
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost');
@@ -42,8 +45,11 @@ const server = http.createServer(async (req, res) => {
   const ext = path.extname(filePath);
   const contentType = MIME_TYPES[ext] || 'application/octet-stream';
 
-  // Map any /dist/ path to the root dist/ directory
-  if (url.pathname.startsWith('/dist/')) {
+  // Map any /dist/ or /static/ path to the root dist/ or static/ directory
+  if (
+    url.pathname.startsWith('/dist/') ||
+    url.pathname.startsWith('/test/static/')
+  ) {
     try {
       const content = fs.readFileSync(filePath);
       res.end(content);
@@ -111,14 +117,63 @@ const server = http.createServer(async (req, res) => {
           res.setHeader('Access-Control-Allow-Origin', '*');
 
           if (contentType && contentType.includes('text/html')) {
-            let text = await response.text();
-            text = text.replaceAll(/ src( *= *)(['"]?)\//g, ' src$1$2/wpt/');
-            text = text.replaceAll(/ href( *= *)(['"]?)\//g, ' href$1$2/wpt/');
             const polyfillTag =
               '<script src="/dist/declarative-partial-updates-polyfill.js">' +
               '</script>';
-            text = text.replace('</title>', `</title>\n${polyfillTag}\n`);
-            res.end(text);
+            const testRunnerTag =
+              '<script src="/test/static/log-test-results.js">' + '</script>';
+
+            const transformer = new Transform({
+              transform(chunk, encoding, callback) {
+                let text = (this.remainder || '') + chunk.toString();
+                // Buffer enough to ensure we don't split the replacement tags
+                const keep = 1024;
+                if (text.length > keep) {
+                  this.remainder = text.slice(-keep);
+                  let toProcess = text.slice(0, -keep);
+
+                  toProcess = toProcess.replaceAll(
+                    / src( *= *)(['"]?)\/(?!wpt\/)/g,
+                    ' src$1$2/wpt/'
+                  );
+                  toProcess = toProcess.replaceAll(
+                    / href( *= *)(['"]?)\/(?!wpt\/)/g,
+                    ' href$1$2/wpt/'
+                  );
+                  // Inject polyfill and test runner after testharness.js
+                  toProcess = toProcess.replace(
+                    TESTHARNESS_RE,
+                    `$& \n${polyfillTag}\n${testRunnerTag}\n`
+                  );
+
+                  this.push(toProcess);
+                } else {
+                  this.remainder = text;
+                }
+                callback();
+              },
+              flush(callback) {
+                if (this.remainder) {
+                  let text = this.remainder;
+                  text = text.replaceAll(
+                    / src( *= *)(['"]?)\/(?!wpt\/)/g,
+                    ' src$1$2/wpt/'
+                  );
+                  text = text.replaceAll(
+                    / href( *= *)(['"]?)\/(?!wpt\/)/g,
+                    ' href$1$2/wpt/'
+                  );
+                  text = text.replace(
+                    TESTHARNESS_RE,
+                    `$& \n${polyfillTag}\n${testRunnerTag}\n`
+                  );
+                  this.push(text);
+                }
+                callback();
+              },
+            });
+
+            Readable.fromWeb(response.body).pipe(transformer).pipe(res);
           } else {
             // Stream the proxied content
             Readable.fromWeb(response.body).pipe(res);
