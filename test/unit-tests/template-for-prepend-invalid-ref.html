@@ -1,0 +1,53 @@
+<!doctype html>
+<!--
+ Copyright 2026 Google LLC
+ SPDX-License-Identifier: Apache-2.0
+-->
+<!--
+  This test is an override for
+  https://wpt.live/html/dom/partial-updates/tentative/template-for-prepend-invalid-ref.html.
+
+  It is basically the same test but with some additional whitespace due to https://bugs.webkit.org/show_bug.cgi?id=309730
+-->
+
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Test - template for preprend invalid ref</title>
+  <script src="/dist/declarative-partial-updates-polyfill.js"></script>
+</head>
+
+<body>
+  <h1>Test - template for preprend invalid ref</h1>
+  <p id="output"></p>
+
+  <div id="placeholder" marker="placeholder">
+    <?marker>
+    <span id="ref"></span>
+  </div>
+  <template for="placeholder">
+    <span>New </span>
+    <script id="removal-script">
+      document.querySelector("#ref").remove();
+    </script>
+    <span>content</span>
+  </template>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      window.testActual = document.querySelector('#placeholder').innerHTML.trim();
+      window.testExpected = '<span>New </span>\n    <script id="removal-script">\n      document.querySelector("#ref").remove();\n    <\/script>\n    <span>content</span>';
+      const testResult = window.testActual === window.testExpected ? 'PASS' : 'FAIL';
+      document.querySelector('#output').textContent = `Test result: ${testResult}`;
+      if (testResult === 'FAIL') {
+        console.error('Test failed');
+        console.log('Actual: ', window.testActual);
+        console.log('Expected: ', window.testExpected);
+      }
+    });
+  </script>
+</body>
+
+</html>

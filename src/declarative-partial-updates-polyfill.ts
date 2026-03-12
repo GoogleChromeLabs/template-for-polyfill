@@ -38,11 +38,14 @@
     templateNode.remove();
   };
 
-  const processTemplate = (template: HTMLTemplateElement) => {
-    if (!template) return;
+  const processTemplate = (
+    template: HTMLTemplateElement,
+    target: Document | Element = document
+  ) => {
+    if (!template || template.hasAttribute('data-no-patch')) return;
 
     const [name, hash] = template.getAttribute('for')?.split('#') || [];
-    const markerElement = document.querySelector(`[marker="${name}"]`);
+    const markerElement = target.querySelector(`[marker="${name}"]`);
 
     if (!markerElement) return;
 
@@ -56,6 +59,7 @@
     // Note this assumes templates (or markers) elements are not streamed in by
     // scripts and only inserted atomically.
     if (
+      target instanceof Document &&
       document.readyState == 'loading' &&
       !(template.nextElementSibling && markerElement.nextElementSibling)
     ) {
@@ -68,7 +72,7 @@
       const processAndCleanup = () => {
         mutationObserver?.disconnect();
         document.removeEventListener('readystatechange', handleStateChange);
-        processTemplate(template);
+        processTemplate(template, target);
       };
 
       mutationObserver = new MutationObserver(() => {
@@ -114,13 +118,16 @@
         // Processing Instructions are usually handled as comments if patching
         // is not supported. Patching adds Processing Instructions to HTML for
         // the first time.
-        processingInstructionText = (node as Comment).data;
+        processingInstructionText = (node as Comment).data.replace(
+          /^\?(start|end|marker)\b/gi,
+          (m) => m.toLowerCase()
+        );
       } else if (node.nodeType === Node.PROCESSING_INSTRUCTION_NODE) {
         // If the browser supports processing instructions but not patching
         // (currently no browsers support this, but never say never!)
         // then they are in a slightly different format to comments, so
         // reformat them to be the same to make later processing easier.
-        processingInstructionText = `?${(node as ProcessingInstruction).target}`;
+        processingInstructionText = `?${(node as ProcessingInstruction).target.toLowerCase()}`;
         if ((node as ProcessingInstruction).data)
           processingInstructionText = `${processingInstructionText} ${(node as ProcessingInstruction).data}`;
       }
@@ -132,11 +139,13 @@
       }
 
       // CASE 1: We are looking at a simple marker
-      if (processingInstructionText.startsWith('?marker')) {
+      if (processingInstructionText.toLowerCase().startsWith('?marker')) {
         // Check if the hash matches (including if there is no hash)
+        const regex = new RegExp(`\\bname *= *(["']?)${hash}\\1`);
         const isMatch = hash
-          ? processingInstructionText.includes(`?marker name="${hash}"`)
-          : processingInstructionText === '?marker';
+          ? regex.test(processingInstructionText)
+          : processingInstructionText.toLowerCase() === '?marker' ||
+            processingInstructionText.toLowerCase() === '?marker?';
 
         if (isMatch) {
           // Simple replacement, no range to track
@@ -145,14 +154,16 @@
         }
       }
       // CASE 2: We are looking for the start of a range
-      else if (processingInstructionText.startsWith('?start')) {
+      else if (processingInstructionText.toLowerCase().startsWith('?start')) {
         depth++;
         // Only match if we haven't already got a startNode
         // to handle duplicate names
+        const regex = new RegExp(`\\bname *= *(["']?)${hash}\\1`);
         const isMatch =
           !startNode && hash
-            ? processingInstructionText.includes(`?start name="${hash}"`)
-            : processingInstructionText === '?start';
+            ? regex.test(processingInstructionText)
+            : processingInstructionText.toLowerCase() === '?start' ||
+              processingInstructionText.toLowerCase() === '?start?';
 
         if (isMatch) {
           // Start of a range found; track it and keep walking
@@ -161,7 +172,10 @@
         }
       }
       // CASE 3: We have found the end tag
-      else if (processingInstructionText.startsWith('?end') && startNode) {
+      else if (
+        processingInstructionText.toLowerCase().startsWith('?end') &&
+        startNode
+      ) {
         // Only replace content if we're at a depth of less than or equal to
         // this start tag. We'd only be less than if our start tag was nested
         // in other HTML elements and missing an end tag.
@@ -190,10 +204,43 @@
     }
   };
 
+  // Add a setHTML monkeypatch
+  const preprocessHTML = (html: string) => {
+    const parser = new DOMParser();
+    const parsedHTML = parser.parseFromString(html, 'text/html');
+    parsedHTML.querySelectorAll('template[for]').forEach((t) => {
+      processTemplate(t as HTMLTemplateElement, parsedHTML.body);
+    });
+    parsedHTML
+      .querySelectorAll('template[for]')
+      .forEach((t) => t.setAttribute('data-no-patch', ''));
+    return parsedHTML.body.innerHTML;
+  };
+  const originalSetHTML = Element.prototype.setHTML;
+  Element.prototype.setHTML = function (html: string) {
+    const processedHTML = preprocessHTML(html);
+    originalSetHTML.call(this, processedHTML);
+  };
+
   // Handle all existing templates in the HTML
   document
     .querySelectorAll('template[for]')
-    .forEach((t) => processTemplate(t as HTMLTemplateElement));
+    .forEach((t) =>
+      processTemplate(t as HTMLTemplateElement, t.getRootNode() as HTMLElement)
+    );
+
+  // Handle any open shadow roots
+  document.querySelectorAll('*').forEach((s) => {
+    if (s.shadowRoot)
+      s.shadowRoot
+        .querySelectorAll('template[for]')
+        .forEach((t) =>
+          processTemplate(
+            t as HTMLTemplateElement,
+            t.getRootNode() as HTMLElement
+          )
+        );
+  });
 
   // Watch for, and handle, newly inserted templates or markers in the HTML
   const observer = new MutationObserver((mutations) => {
@@ -205,7 +252,18 @@
         } else if (node instanceof HTMLElement && node.hasAttribute('marker')) {
           // New marker - process any previously inserted templates for it
           document.querySelectorAll('template[for]').forEach((t) => {
-            processTemplate(t as HTMLTemplateElement);
+            processTemplate(
+              t as HTMLTemplateElement,
+              t.getRootNode() as HTMLElement
+            );
+          });
+        } else if (node instanceof HTMLElement && node.shadowRoot) {
+          // New shadow root - process any templates in it
+          node.shadowRoot.querySelectorAll('template[for]').forEach((t) => {
+            processTemplate(
+              t as HTMLTemplateElement,
+              t.getRootNode() as HTMLElement
+            );
           });
         }
       }

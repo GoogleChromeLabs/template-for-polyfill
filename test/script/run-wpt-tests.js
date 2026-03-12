@@ -16,15 +16,30 @@ const testsFilter = argv.tests;
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const wptsConfig = path.resolve(__dirname, '../config/wpts.json');
+const excludedWptsConfig = path.resolve(
+  __dirname,
+  '../config/excluded-wpts.json'
+);
 
 describe('Declarative Partial Updates Polyfill WPT Tests', function () {
-  const files = JSON.parse(fs.readFileSync(wptsConfig, 'utf-8')).filter(
-    (file) => {
-      return !testsFilter || file.includes(testsFilter);
-    }
+  let excludedFiles = [];
+  if (fs.existsSync(excludedWptsConfig)) {
+    excludedFiles = JSON.parse(fs.readFileSync(excludedWptsConfig, 'utf-8'));
+  }
+  const allFiles = JSON.parse(fs.readFileSync(wptsConfig, 'utf-8'));
+  const files = allFiles.filter(
+    (file) => !testsFilter || file.includes(testsFilter)
   );
 
   files.forEach((file) => {
+    const exclusion = excludedFiles.find((e) => e.test === file);
+    if (exclusion) {
+      it.skip(
+        `should pass ${file} (Skipped: see excluded-wpts.json for reason)`
+      );
+      return;
+    }
+
     it(`should pass ${file}`, async () => {
       const urlPath = `http://localhost:9090/wpt/html/dom/partial-updates/${file}`;
 

@@ -1,0 +1,82 @@
+[
+  {
+    "test": "tentative/template-for-innerHTML-ambiguous.html",
+    "reason": "Test is sync and cannot monkeypatch innerHTML performantly. Patched test gives same results but after giving polyfill a chance to run.",
+    "patched-test": "test/unit-tests/template-for-innerHTML-ambiguous.html"
+  },
+  {
+    "test": "tentative/template-for-innerHTML-within.html",
+    "reason": "Test is sync and cannot monkeypatch innerHTML performantly. Patched test gives same results but after giving polyfill a chance to run.",
+    "patched-test": "test/unit-tests/template-for-innerHTML-within.html"
+  },
+  {
+    "test": "tentative/template-for-move-end-while-appending.html",
+    "reason": "Cannot polyfill parser executing blocking scripts as it parses, before polyfill runs.",
+    "patched-test": "test/unit-tests/template-for-move-end-while-appending.html"
+  },
+  {
+    "test": "tentative/template-for-move-marker-while-appending.html",
+    "reason": "Cannot polyfill parser executing blocking scripts as it parses, before polyfill runs.",
+    "patched-test": "test/unit-tests/template-for-move-marker-while-appending.html"
+  },
+  {
+    "test": "tentative/template-for-move-start-while-appending.html",
+    "reason": "Cannot polyfill parser executing blocking scripts as it parses, before polyfill runs.",
+    "patched-test": "test/unit-tests/template-for-move-start-while-appending.html"
+  },
+  {
+    "test": "tentative/template-for-move-while-appending.html",
+    "reason": "Cannot polyfill parser executing blocking scripts as it parses, before polyfill runs.",
+    "patched-test": "test/unit-tests/template-for-move-while-appending.html"
+  },
+  {
+    "test": "tentative/template-for-multiple-cases.html",
+    "reason": "Cannot inject polyfill into manually created iFrame without monkeypatching the test. TODO.",
+    "patched-test": "TODO"
+  },
+  {
+    "test": "tentative/template-for-mutation-records.html",
+    "reason": "Cannot polyfill parser executing as it processes, before polyfill runs.",
+    "patched-test": "TODO"
+  },
+  {
+    "test": "tentative/template-for-prepend-invalid-ref.html",
+    "reason": "Fails in Safari due to https://bugs.webkit.org/show_bug.cgi?id=309730.",
+    "patched-test": "test/unit-tests/template-for-prepend-invalid-ref.html"
+  },
+  {
+    "test": "tentative/template-for-style.html",
+    "reason": "Cannot polyfill parser executing blocking scripts as it parses, before polyfill runs.",
+    "patched-test": "TODO"
+  },
+  {
+    "test": "tentative/template-for-replace.html",
+    "reason": "Cannot polyfill parser executing blocking scripts as it parses, before polyfill runs.",
+    "patched-test": "TODO"
+  },
+  {
+    "test": "tentative/TODO.html",
+    "reason": "Cannot polyfill parser executing blocking scripts as it parses, before polyfill runs.",
+    "patched-test": "TODO"
+  },
+  {
+    "test": "tentative/template-for-script-eval.html",
+    "reason": "Cannot polyfill parser executing blocking scripts as it parses, before polyfill runs.",
+    "patched-test": "TODO"
+  },
+  {
+    "test": "tentative/template-for-shadow-nested.html",
+    "reason": "Cannot polyfill parser executing blocking scripts as it parses, before polyfill runs.",
+    "patched-test": "TODO"
+  },
+  {
+    "test": "tentative/template-for-shadow-root.html",
+    "reason": "Cannot polyfill parser executing blocking scripts as it parses, before polyfill runs, and the parser replaces the template with the shadow-root (without the attribute).",
+    "patched-test": "TODO"
+  },
+  {
+    "test": "tentative/template-for-supersedes-invalid-shadowrootmode.html",
+    "reason": "Test is sync. And cannot polyfill parser executing blocking scripts as it parses.",
+    "patched-test": "test/unit-tests/template-for-supersedes-invalid-shadowrootmode.html"
+  }
+]

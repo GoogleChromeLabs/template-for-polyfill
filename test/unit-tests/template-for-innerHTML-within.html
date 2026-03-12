@@ -1,0 +1,51 @@
+<!doctype html>
+<!--
+ Copyright 2026 Google LLC
+ SPDX-License-Identifier: Apache-2.0
+-->
+<!--
+  This test is an override for
+  https://wpt.live/html/dom/partial-updates/tentative/template-for-innerHTML-within.html.
+
+  It is basically the same test but only checks the results after giving the polyfill a chance to run since it cannot process mid-script, like the parser can, since monky-patching innerHTML is not performant as it's a property and not a function.
+-->
+
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>template for innerHTML within</title>
+  <script src="/dist/declarative-partial-updates-polyfill.js"></script>
+</head>
+
+<body>
+  <h1>template for innerHTML within</h1>
+  <p id="output"></p>
+
+  <div id="container"></div>
+
+  <script>
+    const container = document.getElementById("container");
+    container.innerHTML = `
+        <div id="placeholder" marker="p"><?start>Old content in innerHTML<?end></div>
+        <template for="p">New content</template>`;
+  </script>
+
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      window.testActual = document.querySelector('#container').innerHTML.trim();
+      window.testExpected = '<div id="placeholder" marker="p">New content</div>';
+      const testResult = window.testActual === window.testExpected ? 'PASS' : 'FAIL';
+      document.querySelector('#output').textContent = `Test result: ${testResult}`;
+      if (testResult === 'FAIL') {
+        console.error('Test failed');
+        console.log('Actual: ', window.testActual);
+        console.log('Expected: ', window.testExpected);
+      }
+    });
+  </script>
+</body>
+
+</html>

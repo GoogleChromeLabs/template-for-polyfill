@@ -1,0 +1,82 @@
+<!doctype html>
+<!--
+ Copyright 2026 Google LLC
+ SPDX-License-Identifier: Apache-2.0
+-->
+<!--
+  This test is an override for
+  https://wpt.live/html/dom/partial-updates/tentative/template-for-move-while-appending.html.
+
+  It is basically a simplified version of the test that only checks the results after giving the polyfill a chance to run since it cannot process mid-script, like the parser can since the `<script>` tags are blocking.
+-->
+
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>template for move while appending</title>
+  <script src="/dist/declarative-partial-updates-polyfill.js"></script>
+</head>
+
+<body>
+  <h1>template for move while appending</h1>
+  <p id="output"></p>
+
+  <div id="target" marker="results"><span id="ref">ref </span>
+    <?start>Loading...</div>
+  <div id="new-container"></div>
+  </div>
+  <script>
+    const contents = [];
+    const target = document.querySelector("#target");
+    function step() {
+      for (const script of target.querySelectorAll("script")) {
+        script.remove();
+      }
+
+      contents.push(target.textContent);
+    }
+
+    step();
+  </script>
+
+  <template for="results"
+    >A<script>
+      step();
+      document.querySelector("#target").prepend("Before ");
+      step();
+    </script>B<script>
+      step();
+      document.querySelector("#ref").remove();
+      step();
+    </script>C<script>
+      step();
+      document.querySelector("#new-container").appendChild(document.querySelector("#target"));
+      step();
+    </script><span id="d">D</span><script>
+      step();
+      document.body.append(document.querySelector("#target"));
+      step();
+    </script><span id="e">E</span><script>
+      step();
+    </script></script><span id="f">F</span><script>
+      step();
+    </script>
+  </template>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      window.testActual = document.querySelector('#target').innerHTML.trim();
+      window.testExpected = 'Before <span id="ref">ref <\/span>\n    ABC\<span id="d">D\</span><span id="e">E\</span><span id="f">F\</span>';
+      const testResult = window.testActual === window.testExpected ? 'PASS' : 'FAIL';
+      document.querySelector('#output').textContent = `Test result: ${testResult}`;
+      if (testResult === 'FAIL') {
+        console.error('Test failed');
+        console.log('Actual: ', window.testActual);
+        console.log('Expected: ', window.testExpected);
+      }
+    });
+  </script>
+  </body>
+</html>
