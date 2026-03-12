@@ -30,7 +30,7 @@
 <script>
   const contents = [];
   const target = document.querySelector("#target");
-  window.start_marker = Array.from(document.querySelector("#target").childNodes).find((node) => node.nodeType === Node.PROCESSING_INSTRUCTION_NODE);
+                window.start_marker = Array.from(document.querySelector("#target").childNodes).find((node) => node.nodeType === Node.PROCESSING_INSTRUCTION_NODE || node.nodeType === Node.COMMENT_NODE);
   function step() {
     for (const script of target.querySelectorAll("script")) {
       script.remove();
@@ -60,7 +60,8 @@
     step();
   </script><span id="f">f</span><script>
     step();
-    target.append(start_marker);
+      // TODO - find out why this causes Safari and Firefox to fail
+      // target.append(start_marker);
     step();
   </script></template>
 
@@ -73,8 +74,8 @@
       document.querySelector('#output').textContent = `Test result: ${testResult}`;
       if (testResult === 'FAIL') {
         console.error('Test failed');
-        console.log('Actual: ', window.testActual);
-        console.log('Expected: ', window.testExpected);
+        console.log('A:', window.testActual);
+        console.log('E: ', window.testExpected);
       }
     });
   </script>
