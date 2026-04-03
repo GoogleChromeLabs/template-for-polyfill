@@ -17,18 +17,18 @@
   <h1>Test 13 - duplicate names</h1>
   <p id="output"></p>
 
-  <section marker="gallery">
+  <section>
     <?start name="all"> Loading...<br>
     <div><?start name="all">Loading inner...<?end></div>
     <?end>
   </section>
-  <template for="gallery#all">
+  <template for="all">
     Actual <strong>gallery</strong> content
   </template>
 
   <script>
     window.addEventListener('DOMContentLoaded', () => {
-      window.testActual = document.querySelector('section[marker="gallery"]').innerHTML;
+      window.testActual = document.querySelector('section').innerHTML;
       window.testExpected = '\n    \n    Actual <strong>gallery</strong> content\n  \n  ';
       document.querySelector('#output').textContent = `Test result: ${window.testActual === window.testExpected ? 'PASS' : 'FAIL'}`;
     });

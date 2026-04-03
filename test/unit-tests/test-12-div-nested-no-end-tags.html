@@ -17,7 +17,7 @@
   <h1>Test 12 - div nested, no end tags</h1>
   <p id="output"></p>
 
-  <section marker="gallery">
+  <section>
     <p>
       Should leave first loading...<br>
       And a "This should remain" at the end
@@ -26,13 +26,13 @@
     <div><?start name="part">Loading inner...</div>
     This should remain
   </section>
-  <template for="gallery#part">
+  <template for="part">
     Actual <strong>gallery</strong> content
   </template>
 
   <script>
     window.addEventListener('DOMContentLoaded', () => {
-      window.testActual = document.querySelector('section[marker="gallery"]').innerHTML;
+      window.testActual = document.querySelector('section').innerHTML;
       window.testExpected = '\n    <p>\n      Should leave first loading...<br>\n      And a "This should remain" at the end\n    </p>\n    <!--?start name="all"--> Loading...<br>\n    <div>\n    Actual <strong>gallery</strong> content\n  </div>\n    This should remain\n  ';
       document.querySelector('#output').textContent = `Test result: ${window.testActual === window.testExpected ? 'PASS' : 'FAIL'}`;
     });

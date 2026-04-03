@@ -17,17 +17,17 @@
   <h1>Test 6 - div nested outer</h1>
   <p id="output"></p>
 
-  <section marker="gallery">
+  <section>
     <?start name="all"> Loading...<br>
       <div><?start name="part">Loading inner...<?end></div>
       <?end>
     </section>
-    <template for="gallery#all">
+    <template for="all">
       Actual <strong>gallery</strong> content
     </template>
     <script>
     window.addEventListener('DOMContentLoaded', () => {
-      window.testActual = document.querySelector('section[marker="gallery"]').innerHTML.trim();
+      window.testActual = document.querySelector('section').innerHTML.trim();
       window.testExpected = 'Actual <strong>gallery</strong> content';
       document.querySelector('#output').textContent = `Test result: ${window.testActual === window.testExpected ? 'PASS' : 'FAIL'}`;
     });

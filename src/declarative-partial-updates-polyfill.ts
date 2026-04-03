@@ -6,7 +6,13 @@
 
 (() => {
   // Only process the polyfill if needed
-  if ('marker' in Element.prototype) return;
+  if (
+    document
+      .createRange()
+      .createContextualFragment('<?marker name=t><template for=t></template>')
+      .firstChild === null
+  )
+    return;
 
   console.log('Loading declarative partial updates polyfill...');
 
@@ -16,8 +22,26 @@
     type: string,
     templateNode: HTMLTemplateElement,
     startNode: Node,
-    endNode: Node | null = null
+    endNode: Node | null = null,
+    target: Document | Element = document
   ): void => {
+    // Handle streaming parser.
+    //
+    // If the document is still loading and either the template or the
+    // processing instruction is the last element in the DOM then it may be
+    // incomplete. Return and rely on the mutation observer to reprocess later.
+    //
+    // Prefer readystatechange over DOMContentLoaded so we can start earlier.
+    if (
+      target instanceof Document &&
+      document.readyState == 'loading' &&
+      (!templateNode.nextElementSibling ||
+        !(startNode as Element).nextElementSibling ||
+        (endNode && !(endNode as Element).nextElementSibling))
+    ) {
+      return;
+    }
+
     if (type !== 'marker') {
       // Remove every sibling after the startNode until the endNode.
       // If we don't have an end node, then we'll remove all siblings.
@@ -38,68 +62,43 @@
     templateNode.remove();
   };
 
+  const findNamedComment = (name: string, target: HTMLElement | null) => {
+    if (!target) return false;
+    const xpath = `//comment()[contains(., 'name=') and contains(., '${name}')]`;
+    const result = document.evaluate(
+      xpath,
+      target,
+      null,
+      XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
+      null
+    );
+    if (result.snapshotLength > 0) {
+      return result.snapshotItem(result.snapshotLength - 1) as Element;
+    }
+    return null;
+  };
+
   const processTemplate = (
     template: HTMLTemplateElement,
     target: Document | Element = document
   ) => {
     if (!template || template.hasAttribute('data-no-patch')) return;
 
-    const [name, hash] = template.getAttribute('for')?.split('#') || [];
-    const markerElement = target.querySelector(`[marker="${name}"]`);
+    const name = template.getAttribute('for');
 
-    if (!markerElement) return;
+    if (!name) return;
 
-    // Handle streaming parser.
-    //
-    // If the document is still loading and either the template or the marker
-    // is the last element in the DOM then it may be incomplete. Wait for the
-    // next element OR the end of the HTML to be reached and only then continue.
-    // Prefer readystatechange over DOMContentLoaded so we can start earlier
-    //
-    // Note this assumes templates (or markers) elements are not streamed in by
-    // scripts and only inserted atomically.
-    if (
-      target instanceof Document &&
-      document.readyState == 'loading' &&
-      !(template.nextElementSibling && markerElement.nextElementSibling)
-    ) {
-      let mutationObserver: MutationObserver;
-
-      // Whichever runs first will cleanups the others and process the template
-      // Technically this could run twice if the last mutation is the </html>
-      // element but that's fine, the template will just not exist then so not
-      // worth implementing a mutex for.
-      const processAndCleanup = () => {
-        mutationObserver?.disconnect();
-        document.removeEventListener('readystatechange', handleStateChange);
-        processTemplate(template, target);
-      };
-
-      mutationObserver = new MutationObserver(() => {
-        // Only process if both template and marker are not the last elements
-        // (or one of them might still be streaming)
-        if (template.nextElementSibling && markerElement.nextElementSibling) {
-          processAndCleanup();
-        }
-      });
-      mutationObserver.observe(document, {childList: true, subtree: true});
-
-      const handleStateChange = () => {
-        // Only process if end of HTML reached
-        if (document.readyState === 'interactive') {
-          processAndCleanup();
-        }
-      };
-      document.addEventListener('readystatechange', handleStateChange);
-
-      // For now end and let one of above handle this template later.
-      return;
-    }
+    // Do a basic check to see if the comment likely exists
+    const processingInstruction = findNamedComment(
+      name,
+      template.parentElement
+    );
+    if (!processingInstruction) return;
 
     // We use a TreeWalker instead of regular query selectors to
     // handle comments and processing instructions
     const walker = document.createTreeWalker(
-      markerElement,
+      template.parentElement as Node,
       // Processing Instructions usually are comments in non-supporting
       // browser, but we also handle the case of actual Processing Instructions
       // in case browsers ever introduce them for other reasons.
@@ -141,15 +140,12 @@
       // CASE 1: We are looking at a simple marker
       if (processingInstructionText.toLowerCase().startsWith('?marker')) {
         // Check if the hash matches (including if there is no hash)
-        const regex = new RegExp(`\\bname *= *(["']?)${hash}\\1`);
-        const isMatch = hash
-          ? regex.test(processingInstructionText)
-          : processingInstructionText.toLowerCase() === '?marker' ||
-            processingInstructionText.toLowerCase() === '?marker?';
+        const regex = new RegExp(`\\bname *= *(["']?)${name}\\1`);
+        const isMatch = regex.test(processingInstructionText);
 
         if (isMatch) {
           // Simple replacement, no range to track
-          replaceContentWithTemplate('marker', template, node);
+          replaceContentWithTemplate('marker', template, node, target);
           return;
         }
       }
@@ -158,12 +154,8 @@
         depth++;
         // Only match if we haven't already got a startNode
         // to handle duplicate names
-        const regex = new RegExp(`\\bname *= *(["']?)${hash}\\1`);
-        const isMatch =
-          !startNode && hash
-            ? regex.test(processingInstructionText)
-            : processingInstructionText.toLowerCase() === '?start' ||
-              processingInstructionText.toLowerCase() === '?start?';
+        const regex = new RegExp(`\\bname *= *(["']?)${name}\\1`);
+        const isMatch = !startNode && regex.test(processingInstructionText);
 
         if (isMatch) {
           // Start of a range found; track it and keep walking
@@ -183,7 +175,13 @@
           // Check if the endNode is for this one (it might be missing)
           const endNode =
             startNode.parentElement === node.parentElement ? node : null;
-          replaceContentWithTemplate('range', template, startNode, endNode);
+          replaceContentWithTemplate(
+            'range',
+            template,
+            startNode,
+            endNode,
+            target
+          );
           return;
         } else {
           // If we see an end tag but we're at a deeper depth then decrement
@@ -200,7 +198,7 @@
     // siblings are replaced until the end of the element.
     if (depth > 0 && startNode) {
       // Remove everything between startNode and the closing tag of the element
-      replaceContentWithTemplate('range', template, startNode);
+      replaceContentWithTemplate('range', template, startNode, null, target);
     }
   };
 
@@ -209,7 +207,7 @@
     const parser = new DOMParser();
     const parsedHTML = parser.parseFromString(html, 'text/html');
     parsedHTML.querySelectorAll('template[for]').forEach((t) => {
-      processTemplate(t as HTMLTemplateElement, parsedHTML.body);
+      processTemplate(t as HTMLTemplateElement); //, parsedHTML.body);
     });
     parsedHTML
       .querySelectorAll('template[for]')
@@ -223,11 +221,9 @@
   };
 
   // Handle all existing templates in the HTML
-  document
-    .querySelectorAll('template[for]')
-    .forEach((t) =>
-      processTemplate(t as HTMLTemplateElement, t.getRootNode() as HTMLElement)
-    );
+  document.querySelectorAll('template[for]').forEach(
+    (t) => processTemplate(t as HTMLTemplateElement) //, t.getRootNode() as HTMLElement)
+  );
 
   // Handle any open shadow roots
   document.querySelectorAll('*').forEach((s) => {
@@ -242,24 +238,24 @@
         );
   });
 
-  // Watch for, and handle, newly inserted templates or markers in the HTML
+  // Watch for, and handle, newly inserted templates or processing instructions in the HTML
   const observer = new MutationObserver((mutations) => {
     for (const mutation of mutations) {
       for (const node of Array.from(mutation.addedNodes)) {
         if (node instanceof HTMLTemplateElement && node.hasAttribute('for')) {
           // New template - process that
           processTemplate(node);
-        } else if (node instanceof HTMLElement && node.hasAttribute('marker')) {
-          // New marker - process any previously inserted templates for it
-          document.querySelectorAll('template[for]').forEach((t) => {
+        } else if (node instanceof HTMLElement && node.shadowRoot) {
+          // New shadow root - process any templates in it
+          node.shadowRoot.querySelectorAll('template[for]').forEach((t) => {
             processTemplate(
               t as HTMLTemplateElement,
               t.getRootNode() as HTMLElement
             );
           });
-        } else if (node instanceof HTMLElement && node.shadowRoot) {
-          // New shadow root - process any templates in it
-          node.shadowRoot.querySelectorAll('template[for]').forEach((t) => {
+        } else {
+          // Process any outstanding templates
+          document.querySelectorAll('template[for]').forEach((t) => {
             processTemplate(
               t as HTMLTemplateElement,
               t.getRootNode() as HTMLElement
@@ -270,4 +266,13 @@
     }
   });
   observer.observe(document, {childList: true, subtree: true});
+
+  // 1. Capture the original function
+  const originalTest = window.test;
+
+  // Check if the original function exists to avoid errors
+  if (typeof originalTest !== 'function') {
+    console.warn('window.test is not a function; cannot monkey patch.');
+    return;
+  }
 })();

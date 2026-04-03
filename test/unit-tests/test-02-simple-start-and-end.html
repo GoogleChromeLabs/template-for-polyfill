@@ -17,15 +17,15 @@
   <h1>Test 2 - simple start and end</h1>
   <p id="output"></p>
 
-  <section marker="gallery">
-    <?start>Loading...<?end>
+  <section>
+    <?start name="gallery">Loading...<?end>
   </section>
   <template for="gallery">
     Actual <strong>gallery</strong> content
   </template>
   <script>
     window.addEventListener('DOMContentLoaded', () => {
-      window.testActual = document.querySelector('section[marker="gallery"]').innerHTML.trim();
+      window.testActual = document.querySelector('section').innerHTML.trim();
       window.testExpected = 'Actual <strong>gallery</strong> content';
       document.querySelector('#output').textContent = `Test result: ${window.testActual === window.testExpected ? 'PASS' : 'FAIL'}`;
     });

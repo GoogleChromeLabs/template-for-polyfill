@@ -79,7 +79,10 @@ async function syncWpts() {
     // Ensure the directory exists
     await fs.mkdir(path.dirname(OUTPUT_FILE), {recursive: true});
 
-    await fs.writeFile(OUTPUT_FILE, JSON.stringify(uniqueFiles, null, 2));
+    await fs.writeFile(
+      OUTPUT_FILE,
+      JSON.stringify(uniqueFiles, null, 2) + '\n'
+    );
     console.log(`Updated ${OUTPUT_FILE}`);
   } catch (error) {
     console.error('Error syncing WPTs:', error);

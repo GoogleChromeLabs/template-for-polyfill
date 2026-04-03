@@ -25,20 +25,20 @@
       .getElementById('add-new-section')
       .addEventListener('click', () => {
         const maxSectionNumber = Array.from(
-          document.querySelectorAll('section[marker]')
+          document.querySelectorAll('h2[id]')
         )
-          .map((s) => s.getAttribute('marker'))
-          .reduce((max, marker) => {
-            const number = parseInt(marker.replace('gallery', ''));
+          .map((s) => s.id)
+          .reduce((max, id) => {
+            const number = parseInt(id);
             return Math.max(max, number);
           }, 0);
 
         console.log('maxSectionNumber', maxSectionNumber);
         const header = document.createElement('h2');
+        header.id = maxSectionNumber + 1;
         header.textContent = `Section ${maxSectionNumber + 1} - added later`;
         const section = document.createElement('section');
-        section.setAttribute('marker', `gallery${maxSectionNumber + 1}`);
-        section.innerHTML = '<?start>Loading...<?end>';
+        section.innerHTML = `<?start name='gallery${maxSectionNumber + 1}'>Loading...<?end>`;
         document.body.appendChild(header);
         document.body.appendChild(section);
       });
@@ -47,17 +47,17 @@
       .getElementById('add-new-template')
       .addEventListener('click', () => {
         let maxSectionNumber = Array.from(
-          document.querySelectorAll('section[marker]')
+          document.querySelectorAll('h2[id]')
         )
-          .map((s) => s.getAttribute('marker'))
-          .reduce((max, marker) => {
-            const number = parseInt(marker.replace('gallery', ''));
+          .map((s) => s.id)
+          .reduce((max, id) => {
+            const number = parseInt(id);
             return Math.max(max, number);
           }, 0);
 
         // Handle template being inserted first
         if (
-          document.querySelector(`section[marker=gallery${maxSectionNumber}`)
+          document.querySelector(`h2[id="${maxSectionNumber}"]`)?.nextSibling
             ?.innerText != 'Loading...'
         ) {
           maxSectionNumber++;
@@ -78,7 +78,7 @@
       setTimeout(() => {
         document.querySelector('button[id="add-new-section"]').click();
         setTimeout(() => {
-          window.testActual = document.querySelector('section[marker="gallery1"]').innerHTML;
+          window.testActual = document.querySelector('h2[id="1"]').nextSibling.innerHTML;
           window.testExpected = 'Actual <strong>gallery1</strong> content';
           document.querySelector('#output').textContent = `Test result: ${window.testActual === window.testExpected ? 'PASS' : 'FAIL'}`;
         }, 50);

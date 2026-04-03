@@ -145,6 +145,12 @@ const server = http.createServer(async (req, res) => {
                     TESTHARNESS_RE,
                     `$& \n${polyfillTag}\n${testRunnerTag}\n`
                   );
+                  // Replace scrikpt tags with defer to give polyfill a chance
+                  // to run
+                  toProcess = toProcess.replaceAll(
+                    /<script>/g,
+                    '<script defer>'
+                  );
 
                   this.push(toProcess);
                 } else {
