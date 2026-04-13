@@ -14,7 +14,7 @@
   )
     return;
 
-  console.log('Loading declarative partial updates polyfill...');
+  console.log('Loading templates for polyfill...');
 
   // Helper function to actually insert the content and cleanup the
   // processing instructions

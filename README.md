@@ -1,8 +1,8 @@
-# Declarative partial updates polyfill
+# Templates for polyfill
 
 This is a partial polyfill for the [Declarative partial updates API](https://github.com/WICG/declarative-partial-updates/).
 
-The polyfill includes a implementation of declarative patching using `template` elements as described in the [Patching explainder](https://github.com/WICG/declarative-partial-updates/blob/main/patching-explainer.md).
+The polyfill includes a implementation of declarative patching using `template` elements as described in the [Patching explainer](https://github.com/WICG/declarative-partial-updates/blob/main/patching-explainer.md).
 
 Other implementations of the Declarative partial updates API are not yet implemented
 
@@ -17,11 +17,11 @@ A browser that supports ES6/ES2015 is required for this polyfill.
 **Note: not added to npm yet**
 
 ```console
-npm install declarative-partial-updates-polyfill
+npm install template-for-polyfill
 ```
 
 ```js
-<script type="module" src="./declarative-partial-updates-polyfill/dist/declarative-partial-updates-polyfill.js">
+<script type="module" src="./template-for-polyfill/dist/template-for-polyfill.js">
 ```
 
 ### Include via unpkg
@@ -29,21 +29,21 @@ npm install declarative-partial-updates-polyfill
 **Note: not added to npm yet**
 
 ```html
-<script src="https://unpkg.com/declarative-partial-updates-polyfill"></script>
+<script src="https://unpkg.com/template-for-polyfill"></script>
 ```
 
 ### Building from source
 
 ```console
-git clone https://github.com/GoogleChromeLabs/declarative-partial-updates-polyfill
-cd declarative-partial-updates-polyfill
+git clone https://github.com/GoogleChromeLabs/template-for-polyfill
+cd template-for-polyfill
 npm i
 npm test        # Tests should pass
 npm run build   # Outputs minified polyfill to dist/
 ```
 
 ```html
-<script src="/path_to_polyfill/declarative-partial-updates-polyfill.js"></script>
+<script src="/path_to_polyfill/template-for-polyfill.js"></script>
 ```
 
 ## License

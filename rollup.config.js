@@ -39,19 +39,19 @@ function configurePlugins(opts = {}) {
 
 export default [
   {
-    input: 'dist/modules/declarative-partial-updates-polyfill.js',
+    input: 'dist/modules/template-for-polyfill.js',
     plugins: configurePlugins({isBrowser: true, minify: true}),
     output: {
       format: 'esm',
-      file: './dist/declarative-partial-updates-polyfill.js',
+      file: './dist/template-for-polyfill.js',
     },
   },
   {
-    input: 'dist/modules/declarative-partial-updates-polyfill.js',
+    input: 'dist/modules/template-for-polyfill.js',
     plugins: configurePlugins({isBrowser: false, minify: true}),
     output: {
       format: 'cjs',
-      file: './dist/declarative-partial-updates-polyfill.cjs',
+      file: './dist/template-for-polyfill.cjs',
     },
   },
 ];

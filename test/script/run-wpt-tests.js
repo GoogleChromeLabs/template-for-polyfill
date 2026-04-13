@@ -21,7 +21,7 @@ const excludedWptsConfig = path.resolve(
   '../config/excluded-wpts.json'
 );
 
-describe('Declarative Partial Updates Polyfill WPT Tests', function () {
+describe('Templates For Polyfill WPT Tests', function () {
   let excludedFiles = [];
   if (fs.existsSync(excludedWptsConfig)) {
     excludedFiles = JSON.parse(fs.readFileSync(excludedWptsConfig, 'utf-8'));

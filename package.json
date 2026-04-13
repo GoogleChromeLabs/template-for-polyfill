@@ -1,15 +1,15 @@
 {
-  "name": "declarative-partial-updates-polyfill",
+  "name": "template-for-polyfill",
   "version": "0.1.0",
-  "description": "A polyfill for the experimental Declarative Partial Updates API",
+  "description": "A polyfill for the Templates For API",
   "type": "module",
-  "main": "dist/declarative-partial-updates-polyfill.cjs",
-  "module": "dist/declarative-partial-updates-polyfill.js",
-  "unpkg": "dist/declarative-partial-updates-polyfill.js",
+  "main": "dist/template-for-polyfill.cjs",
+  "module": "dist/template-for-polyfill.js",
+  "unpkg": "dist/template-for-polyfill.js",
   "exports": {
     ".": {
-      "require": "./dist/declarative-partial-updates-polyfill.cjs",
-      "default": "./dist/declarative-partial-updates-polyfill.js"
+      "require": "./dist/template-for-polyfill.cjs",
+      "default": "./dist/template-for-polyfill.js"
     }
   },
   "files": [
@@ -30,7 +30,7 @@
     "release:major": "npm version major -m 'Release v%s' && npm publish",
     "release:minor": "npm version minor -m 'Release v%s' && npm publish",
     "release:patch": "npm version patch -m 'Release v%s' && npm publish",
-    "size": "brotli-size --raw dist/declarative-partial-updates-polyfill.js",
+    "size": "brotli-size --raw dist/template-for-polyfill.js",
     "test": "run-p test:server test:unit",
     "test:server": "node test/server/server.js",
     "test:sync-wpts": "node test/script/sync-wpts.js",
@@ -53,10 +53,10 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "git@github.com:WICG/declarative-partial-updates.git"
+    "url": "git@github.com:GoogleChromeLabs/template-for-polyfill.git"
   },
   "bugs": {
-    "url": "https://github.com/WICG/declarative-partial-updates/issues"
+    "url": "https://github.com/GoogleChromeLabs/template-for-polyfill/issues"
   },
   "prettier": {
     "arrowParens": "always",

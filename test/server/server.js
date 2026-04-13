@@ -118,8 +118,7 @@ const server = http.createServer(async (req, res) => {
 
           if (contentType && contentType.includes('text/html')) {
             const polyfillTag =
-              '<script src="/dist/declarative-partial-updates-polyfill.js">' +
-              '</script>';
+              '<script src="/dist/template-for-polyfill.js">' + '</script>';
             const testRunnerTag =
               '<script src="/test/static/log-test-results.js">' + '</script>';
 
