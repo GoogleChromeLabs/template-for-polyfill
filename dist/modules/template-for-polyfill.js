@@ -13,7 +13,7 @@
     console.log('Loading templates for polyfill...');
     // Helper function to actually insert the content and cleanup the
     // processing instructions
-    const replaceContentWithTemplate = (type, templateNode, startNode, endNode = null, target = document.documentElement) => {
+    const replaceContentWithTemplate = (type, templateNode, startNode, endNode = null, target = document) => {
         // Handle streaming parser.
         // If the document is still loading and either the template or the
         // processing instruction is the last element in the DOM then it may be
@@ -44,15 +44,19 @@
         // Finally remove the template
         templateNode.remove();
     };
-    const processTemplate = (template, target = document.body) => {
-        if (!template || template.hasAttribute('data-no-patch') || !template.parentElement)
+    const processTemplate = (template, target = document) => {
+        if (!template ||
+            template.hasAttribute('data-no-patch') ||
+            !template.parentElement)
             return;
         const name = template.getAttribute('for');
         if (!name)
             return;
         // If the template is in the body then it has access to the whole document
         // including the <head>
-        const parent = template.parentElement === document.body ? document.documentElement : template.parentElement;
+        const parent = template.parentElement === document.body
+            ? document.documentElement
+            : template.parentElement;
         // We use a TreeWalker instead of regular query selectors to
         // handle comments and processing instructions
         const walker = document.createTreeWalker(parent, 

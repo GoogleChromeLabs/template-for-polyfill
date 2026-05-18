@@ -23,7 +23,7 @@
     templateNode: HTMLTemplateElement,
     startNode: Node,
     endNode: Node | null = null,
-    target: Element = document.documentElement
+    target: Document | Element = document
   ): void => {
     // Handle streaming parser.
     // If the document is still loading and either the template or the
@@ -65,7 +65,7 @@
 
   const processTemplate = (
     template: HTMLTemplateElement,
-    target: Element = document.body
+    target: Document | Element = document
   ) => {
     if (
       !template ||
