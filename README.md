@@ -10,11 +10,14 @@ Other implementations of the Declarative partial updates API are not yet impleme
 
 A browser that supports ES6/ES2015 is required for this polyfill.
 
+## Limitations
+
+- HTML inserted via `setHTML` is pre-processed for `<template for>` instructions, but other APIs such as `innerHTML` cannot be monkey-patched for performance reasons. The polyfill we rescan the document on subsequent DOM manipulations so templates may be processed then.
+- New `<template for>` instructions after the polyfill is loaded are processed via a mutation observer so will not happen during HTML parsing like they would for a browser that supports this natively. This may cause empty content of placeholder content in `<?start>`/`<?end>` processing instruction to show initially, where this would not happen when the API is supported natively.
+
 ## Usage
 
 ### Include via npm and a bundler
-
-**Note: not added to npm yet**
 
 ```console
 npm install template-for-polyfill
@@ -25,8 +28,6 @@ npm install template-for-polyfill
 ```
 
 ### Include via unpkg
-
-**Note: not added to npm yet**
 
 ```html
 <script src="https://unpkg.com/template-for-polyfill"></script>

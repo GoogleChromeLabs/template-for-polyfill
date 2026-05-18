@@ -24,6 +24,7 @@ export default [
         ...globals.es6,
         ...globals.node,
         ...globals.mocha,
+        browser: 'readonly',
       },
     },
   },

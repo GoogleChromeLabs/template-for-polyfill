@@ -15,33 +15,18 @@ const argv = yargs(hideBin(process.argv)).parse();
 const testsFilter = argv.tests;
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const wptsConfig = path.resolve(__dirname, '../config/wpts.json');
-const excludedWptsConfig = path.resolve(
-  __dirname,
-  '../config/excluded-wpts.json'
-);
+const unitTestsDir = path.resolve(__dirname, '../unit-tests');
 
-describe('Templates For Polyfill WPT Tests', function () {
-  let excludedFiles = [];
-  if (fs.existsSync(excludedWptsConfig)) {
-    excludedFiles = JSON.parse(fs.readFileSync(excludedWptsConfig, 'utf-8'));
-  }
-  const allFiles = JSON.parse(fs.readFileSync(wptsConfig, 'utf-8'));
-  const files = allFiles.filter(
-    (file) => !testsFilter || file.includes(testsFilter)
-  );
+describe('Templates For Polyfill Unit Tests', function () {
+  const files = fs.readdirSync(unitTestsDir).filter((file) => {
+    return (
+      file.endsWith('.html') && (!testsFilter || file.includes(testsFilter))
+    );
+  });
 
   files.forEach((file) => {
-    const exclusion = excludedFiles.find((e) => e.test === file);
-    if (exclusion) {
-      it.skip(
-        `should pass ${file} (Skipped: see excluded-wpts.json for reason)`
-      );
-      return;
-    }
-
     it(`should pass ${file}`, async () => {
-      const urlPath = `http://localhost:9090/wpt/html/dom/partial-updates/${file}`;
+      const urlPath = `http://localhost:9090/tests/unit-tests/${file}`;
 
       await browser.url(urlPath);
 

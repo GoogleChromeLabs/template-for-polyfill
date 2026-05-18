@@ -23,8 +23,8 @@
   <h1>Test - template for preprend invalid ref</h1>
   <p id="output"></p>
 
-  <div id="placeholder" marker="placeholder">
-    <?marker>
+  <div id="placeholder">
+    <?marker name="placeholder">
     <span id="ref"></span>
   </div>
   <template for="placeholder">
@@ -37,15 +37,20 @@
 
   <script>
     window.addEventListener('DOMContentLoaded', () => {
-      window.testActual = document.querySelector('#placeholder').innerHTML.trim();
-      window.testExpected = '<span>New </span>\n    <script id="removal-script">\n      document.querySelector("#ref").remove();\n    <\/script>\n    <span>content</span>';
-      const testResult = window.testActual === window.testExpected ? 'PASS' : 'FAIL';
-      document.querySelector('#output').textContent = `Test result: ${testResult}`;
-      if (testResult === 'FAIL') {
-        console.error('Test failed');
-        console.log('Actual: ', window.testActual);
-        console.log('Expected: ', window.testExpected);
-      }
+      // We can't interrupt the parser so instead do a dummy update so the polyfill
+      // will see the insertion and then give the polyfill a chance to run.
+      document.querySelector('#output').textContent = `Test result: incoming...`;
+      setTimeout(() => {
+        window.testActual = document.querySelector('#placeholder').innerHTML.trim();
+        window.testExpected = '<span>New </span>\n    <script id="removal-script">\n      document.querySelector("#ref").remove();\n    <\/script>\n    <span>content</span>';
+        const testResult = window.testActual === window.testExpected ? 'PASS' : 'FAIL';
+        document.querySelector('#output').textContent = `Test result: ${testResult}`;
+        if (testResult === 'FAIL') {
+          console.error('Test failed');
+          console.log('Actual: ', window.testActual);
+          console.log('Expected: ', window.testExpected);
+        }
+      }, 10);
     });
   </script>
 </body>

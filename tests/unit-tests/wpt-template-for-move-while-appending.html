@@ -23,8 +23,8 @@
   <h1>template for move while appending</h1>
   <p id="output"></p>
 
-  <div id="target" marker="results"><span id="ref">ref </span>
-    <?start>Loading...</div>
+  <div id="target"><span id="ref">ref </span>
+    <?start name="results">Loading...</div>
   <div id="new-container"></div>
   </div>
   <script>
@@ -68,15 +68,20 @@
 
   <script>
     window.addEventListener('DOMContentLoaded', () => {
-      window.testActual = document.querySelector('#target').innerHTML.trim();
-      window.testExpected = 'Before <span id="ref">ref <\/span>\n    ABC\<span id="d">D\</span><span id="e">E\</span><span id="f">F\</span>';
-      const testResult = window.testActual === window.testExpected ? 'PASS' : 'FAIL';
-      document.querySelector('#output').textContent = `Test result: ${testResult}`;
-      if (testResult === 'FAIL') {
-        console.error('Test failed');
-        console.log('Actual: ', window.testActual);
-        console.log('Expected: ', window.testExpected);
-      }
+      // We can't interrupt the parser so instead do a dummy update so the polyfill
+      // will see the insertion and then give the polyfill a chance to run.
+      document.querySelector('#output').textContent = `Test result: incoming...`;
+      setTimeout(() => {
+        window.testActual = document.querySelector('#target').innerHTML.trim();
+        window.testExpected = 'Before <span id="ref">ref <\/span>\n    ABC\<span id="d">D\</span><span id="e">E\</span><span id="f">F\</span>';
+        const testResult = window.testActual === window.testExpected ? 'PASS' : 'FAIL';
+        document.querySelector('#output').textContent = `Test result: ${testResult}`;
+        if (testResult === 'FAIL') {
+          console.error('Test failed');
+          console.log('Actual: ', window.testActual);
+          console.log('Expected: ', window.testExpected);
+        }
+      }, 10);
     });
   </script>
   </body>

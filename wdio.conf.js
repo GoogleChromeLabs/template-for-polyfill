@@ -24,8 +24,7 @@ const browsers = argv.browsers
   : ['chrome', 'firefox', 'safari'];
 
 const suites = {
-  unit: ['test/script/run-unit-tests.js'],
-  wpt: ['test/script/run-wpt-tests.js'],
+  unit: ['tests/script/run-unit-tests.js'],
 };
 
 export const config = {

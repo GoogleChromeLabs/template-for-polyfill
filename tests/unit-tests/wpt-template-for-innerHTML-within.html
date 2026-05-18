@@ -28,22 +28,27 @@
   <script>
     const container = document.getElementById("container");
     container.innerHTML = `
-        <div id="placeholder" marker="p"><?start>Old content in innerHTML<?end></div>
+        <div id="placeholder"><?start name="p">Old content in innerHTML<?end></div>
         <template for="p">New content</template>`;
   </script>
 
 
   <script>
     window.addEventListener('DOMContentLoaded', () => {
-      window.testActual = document.querySelector('#container').innerHTML.trim();
-      window.testExpected = '<div id="placeholder" marker="p">New content</div>';
-      const testResult = window.testActual === window.testExpected ? 'PASS' : 'FAIL';
-      document.querySelector('#output').textContent = `Test result: ${testResult}`;
-      if (testResult === 'FAIL') {
-        console.error('Test failed');
-        console.log('Actual: ', window.testActual);
-        console.log('Expected: ', window.testExpected);
-      }
+      // We can't monkeypatch innerHTML for performance reasons
+      // so instead do a dummy update so the polyfill will see the insertion.
+      document.querySelector('#output').textContent = `Test result: incoming...`;
+      setTimeout(() => {
+        window.testActual = document.querySelector('#container').innerHTML.trim();
+        window.testExpected = '<div id="placeholder">New content</div>';
+        const testResult = window.testActual === window.testExpected ? 'PASS' : 'FAIL';
+        document.querySelector('#output').textContent = `Test result: ${testResult}`;
+        if (testResult === 'FAIL') {
+          console.error('Test failed');
+          console.log('Actual: ', window.testActual);
+          console.log('Expected: ', window.testExpected);
+        }
+      }, 10);
     });
   </script>
 </body>

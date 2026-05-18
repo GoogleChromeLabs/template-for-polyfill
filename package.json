@@ -32,10 +32,8 @@
     "release:patch": "npm version patch -m 'Release v%s' && npm publish",
     "size": "brotli-size --raw dist/template-for-polyfill.js",
     "test": "run-p test:server test:unit",
-    "test:server": "node test/server/server.js",
-    "test:sync-wpts": "node test/script/sync-wpts.js",
+    "test:server": "node tests/server/server.js",
     "test:unit": "wdio --suite=unit",
-    "test:wpts": "wdio --suite=wpt",
     "watch": "run-p watch:*",
     "watch:ts": "tsc -b -w",
     "watch:js": "rollup -c -w"
