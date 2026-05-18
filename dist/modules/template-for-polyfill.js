@@ -157,7 +157,9 @@
         originalSetHTML.call(this, processedHTML);
     };
     // Handle all existing templates in the HTML
-    document.querySelectorAll('template[for]').forEach((t) => processTemplate(t, t.getRootNode()));
+    document
+        .querySelectorAll('template[for]')
+        .forEach((t) => processTemplate(t, t.getRootNode()));
     // Handle any open shadow roots
     document.querySelectorAll('*').forEach((s) => {
         if (s.shadowRoot)
