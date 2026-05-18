@@ -16,11 +16,14 @@
     const replaceContentWithTemplate = (type, templateNode, startNode, endNode = null, target) => {
         // Handle streaming parser.
         // If the document is still loading and either the template or the
-        // processing instruction is the last element in the DOM then it may be
-        // incomplete. Return and rely on the mutation observer to reprocess later.
+        // processing instruction is the last element has siblings then it may be
+        // incomplete. Return early and rely on the mutation observer and DCL
+        // checks to reprocess later.
         if (target.parentNode instanceof Document &&
             document.readyState === 'loading' &&
-            (!templateNode.nextElementSibling)) {
+            (!templateNode.nextElementSibling ||
+                !startNode.nextElementSibling ||
+                (endNode && !endNode.nextElementSibling))) {
             return;
         }
         if (type !== 'marker') {
@@ -161,23 +164,28 @@
         const processedHTML = preprocessHTML(html);
         originalSetHTML.call(this, processedHTML);
     };
-    // Handle all existing templates in the HTML
-    document
-        .querySelectorAll('template[for]')
-        .forEach((t) => {
-        processTemplate(t);
-    });
-    // Handle any open shadow roots
-    document.querySelectorAll('*').forEach((s) => {
-        if (s.shadowRoot)
-            s.shadowRoot
-                .querySelectorAll('template[for]')
-                .forEach((t) => {
-                if (t.parentElement) {
-                    processTemplate(t);
-                }
-            });
-    });
+    function processAllOutStandingTemplates() {
+        // Handle all existing templates in the HTML
+        document.querySelectorAll('template[for]').forEach((t) => {
+            processTemplate(t);
+        });
+        // Handle any open shadow roots
+        document.querySelectorAll('*').forEach((s) => {
+            if (s.shadowRoot)
+                s.shadowRoot.querySelectorAll('template[for]').forEach((t) => {
+                    if (t.parentElement) {
+                        processTemplate(t);
+                    }
+                });
+        });
+    }
+    // Process all templates once now
+    processAllOutStandingTemplates();
+    // As we check for streaming HTML and don't process the last elements while
+    // document is loading, process one more time on DOMContentLoaded to catch
+    // any child templates or processing instructions we missed that were the
+    // last elements.
+    window.addEventListener('DOMContentLoaded', () => { processAllOutStandingTemplates(); });
     // Watch for, and handle, newly inserted templates or processing instructions in the HTML
     const observer = new MutationObserver((mutations) => {
         for (const mutation of mutations) {
@@ -199,10 +207,6 @@
                 else {
                     // Process any outstanding templates
                     document.querySelectorAll('template[for]').forEach((t) => {
-                        // processTemplate(
-                        //   t as HTMLTemplateElement,
-                        //   t.getRootNode() as HTMLElement
-                        // );
                         if (t.parentElement) {
                             processTemplate(t);
                         }
