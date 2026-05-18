@@ -23,7 +23,7 @@
     templateNode: HTMLTemplateElement,
     startNode: Node,
     endNode: Node | null = null,
-    target: Document | Element = document
+    target: Element = document.documentElement
   ): void => {
     // Handle streaming parser.
     // If the document is still loading and either the template or the
@@ -65,18 +65,29 @@
 
   const processTemplate = (
     template: HTMLTemplateElement,
-    target: Document | Element = document
+    target: Element = document.body
   ) => {
-    if (!template || template.hasAttribute('data-no-patch')) return;
+    if (
+      !template ||
+      template.hasAttribute('data-no-patch') ||
+      !template.parentElement
+    )
+      return;
 
     const name = template.getAttribute('for');
 
     if (!name) return;
 
+    // If the template is in the body then it has access to the whole document
+    // including the <head>
+    const parent =
+      template.parentElement === document.body
+        ? document.documentElement
+        : template.parentElement;
     // We use a TreeWalker instead of regular query selectors to
     // handle comments and processing instructions
     const walker = document.createTreeWalker(
-      template.parentElement as Node,
+      parent as HTMLElement,
       // Processing Instructions usually are comments in non-supporting
       // browser, but we also handle the case of actual Processing
       // Instructions in case browsers ever introduce them for other

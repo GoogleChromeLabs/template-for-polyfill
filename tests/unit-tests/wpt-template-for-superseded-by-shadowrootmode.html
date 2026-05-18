@@ -1,0 +1,44 @@
+<!doctype html>
+<!--
+ Copyright 2026 Google LLC
+ SPDX-License-Identifier: Apache-2.0
+-->
+<!--
+  This test is basically a copy of
+  https://wpt.live/html/dom/partial-updates/tentative/template-for-superseded-by-shadowrootmode.html.
+-->
+
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HTML partial updates: shadowrootmode supersedes for</title>
+  <script src="/dist/template-for-polyfill.js"></script>
+</head>
+
+<body>
+  <h1>HTML partial updates - update title</h1>
+  <p id="output"></p>
+
+  <div id="container">
+    <section id=outer><?start name="d">Unchanged<?end></section>
+    <template shadowrootmode="open" for="d">
+      <section id=inner>Inside</section>
+    </template>
+  </div>
+
+  <script>
+    window.testActual = document.querySelector('#container').innerHTML.trim() + document.querySelector("#container").shadowRoot.querySelector("#inner").innerHTML.trim();
+    window.testExpected = '<section id="outer"><!--?start name="d"-->Unchanged<!--?end--></section>Inside';
+    const testResult = window.testActual === window.testExpected ? 'PASS' : 'FAIL';
+    document.querySelector('#output').textContent = `Test result: ${testResult}`;
+    if (testResult === 'FAIL') {
+    console.error('Test failed');
+    console.log('Actual: ', window.testActual);
+    console.log('Expected: ', window.testExpected);
+    }
+  </script>
+</body>
+
+</html>

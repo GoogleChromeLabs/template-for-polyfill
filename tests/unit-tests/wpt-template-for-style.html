@@ -1,0 +1,46 @@
+<!doctype html>
+<!--
+ Copyright 2026 Google LLC
+ SPDX-License-Identifier: Apache-2.0
+-->
+<!--
+  This test is basically a local copy of
+  https://wpt.live/html/dom/partial-updates/tentative/template-for-title.html.
+-->
+
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HTML partial updates - patch updates style with plain text</title>
+  <script src="/dist/template-for-polyfill.js"></script>
+</head>
+
+<body>
+  <?start name="cn"?><style id="placeholder"></style><?end?>
+  <h1>HTML partial updates - patch updates style with plain text</h1>
+  <p id="output"></p>
+
+  <div id="target"></div>
+  <template for="cn">
+      <style id="placeholder">
+          #target { color: rgba(100, 0, 100); }
+          #something:after { content: "<div id=dontparseme></div>" };
+      </style>
+  </template>
+
+  <script>
+    window.testActual = document.querySelector('#placeholder').innerHTML.trim() + getComputedStyle(document.getElementById("target")).color;
+    window.testExpected = '#target { color: rgba(100, 0, 100); }\n          #something:after { content: "<div id=dontparseme></div>" };rgb(100, 0, 100)';
+    const testResult = window.testActual === window.testExpected ? 'PASS' : 'FAIL';
+    document.querySelector('#output').textContent = `Test result: ${testResult}`;
+    if (testResult === 'FAIL') {
+    console.error('Test failed');
+    console.log('Actual: ', window.testActual);
+    console.log('Expected: ', window.testExpected);
+    }
+  </script>
+</body>
+
+</html>

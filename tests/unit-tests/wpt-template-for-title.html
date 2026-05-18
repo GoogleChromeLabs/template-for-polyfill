@@ -1,0 +1,41 @@
+<!doctype html>
+<!--
+ Copyright 2026 Google LLC
+ SPDX-License-Identifier: Apache-2.0
+-->
+<!--
+  This test is basically a local copy of
+  https://wpt.live/html/dom/partial-updates/tentative/template-for-title.html.
+-->
+
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <?start name="title"?>
+  <title>HTML partial updates - update title</title>
+  <?end?>
+  <script src="/dist/template-for-polyfill.js"></script>
+</head>
+
+<body>
+  <h1>HTML partial updates - update title</h1>
+  <p id="output"></p>
+
+  <template for="title"><title>New title</title></template>
+
+  <script>
+    window.testActual = document.querySelector('title').innerHTML.trim();
+    window.testExpected = 'New title';
+    const testResult = window.testActual === window.testExpected ? 'PASS' : 'FAIL';
+    document.querySelector('#output').textContent = `Test result: ${testResult}`;
+    if (testResult === 'FAIL') {
+    console.error('Test failed');
+    console.log('Actual: ', window.testActual);
+    console.log('Expected: ', window.testExpected);
+    }
+  </script>
+</body>
+
+</html>
