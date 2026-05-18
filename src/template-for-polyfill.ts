@@ -23,18 +23,16 @@
     templateNode: HTMLTemplateElement,
     startNode: Node,
     endNode: Node | null = null,
-    target: Document | Element = document
+    target: HTMLElement
   ): void => {
     // Handle streaming parser.
     // If the document is still loading and either the template or the
     // processing instruction is the last element in the DOM then it may be
     // incomplete. Return and rely on the mutation observer to reprocess later.
     if (
-      target instanceof Document &&
-      document.readyState == 'loading' &&
-      (!templateNode.nextElementSibling ||
-        !(startNode as Element).nextElementSibling ||
-        (endNode && !(endNode as Element).nextElementSibling))
+      target.parentNode instanceof Document &&
+      document.readyState === 'loading' &&
+      !templateNode.nextElementSibling
     ) {
       return;
     }
@@ -63,10 +61,7 @@
     templateNode.remove();
   };
 
-  const processTemplate = (
-    template: HTMLTemplateElement,
-    target: Document | Element = document
-  ) => {
+  const processTemplate = (template: HTMLTemplateElement) => {
     if (
       !template ||
       template.hasAttribute('data-no-patch') ||
@@ -87,7 +82,7 @@
     // We use a TreeWalker instead of regular query selectors to
     // handle comments and processing instructions
     const walker = document.createTreeWalker(
-      parent as HTMLElement,
+      parent,
       // Processing Instructions usually are comments in non-supporting
       // browser, but we also handle the case of actual Processing
       // Instructions in case browsers ever introduce them for other
@@ -135,7 +130,7 @@
 
         if (isMatch) {
           // Simple replacement, no range to track
-          replaceContentWithTemplate('marker', template, node, target);
+          replaceContentWithTemplate('marker', template, node, null, parent);
           return;
         }
       }
@@ -170,7 +165,7 @@
             template,
             startNode,
             endNode,
-            target
+            parent
           );
           return;
         } else {
@@ -188,7 +183,7 @@
     // siblings are replaced until the end of the element.
     if (depth > 0 && startNode) {
       // Remove everything between startNode and the closing tag of the element
-      replaceContentWithTemplate('range', template, startNode, null, target);
+      replaceContentWithTemplate('range', template, startNode, null, parent);
     }
   };
 
@@ -198,7 +193,7 @@
     const parser = new DOMParser();
     const parsedHTML = parser.parseFromString(html, 'text/html');
     parsedHTML.querySelectorAll('template[for]').forEach((t) => {
-      processTemplate(t as HTMLTemplateElement, parsedHTML.body);
+      processTemplate(t as HTMLTemplateElement);
     });
     parsedHTML
       .querySelectorAll('template[for]')
@@ -212,23 +207,18 @@
   };
 
   // Handle all existing templates in the HTML
-  document
-    .querySelectorAll('template[for]')
-    .forEach((t) =>
-      processTemplate(t as HTMLTemplateElement, t.getRootNode() as HTMLElement)
-    );
+  document.querySelectorAll('template[for]').forEach((t) => {
+    processTemplate(t as HTMLTemplateElement);
+  });
 
   // Handle any open shadow roots
   document.querySelectorAll('*').forEach((s) => {
     if (s.shadowRoot)
-      s.shadowRoot
-        .querySelectorAll('template[for]')
-        .forEach((t) =>
-          processTemplate(
-            t as HTMLTemplateElement,
-            t.getRootNode() as HTMLElement
-          )
-        );
+      s.shadowRoot.querySelectorAll('template[for]').forEach((t) => {
+        if (t.parentElement) {
+          processTemplate(t as HTMLTemplateElement);
+        }
+      });
   });
 
   // Watch for, and handle, newly inserted templates or processing instructions in the HTML
@@ -237,22 +227,26 @@
       for (const node of Array.from(mutation.addedNodes)) {
         if (node instanceof HTMLTemplateElement && node.hasAttribute('for')) {
           // New template - process that
-          processTemplate(node);
+          if (node.parentElement) {
+            processTemplate(node);
+          }
         } else if (node instanceof HTMLElement && node.shadowRoot) {
           // New shadow root - process any templates in it
           node.shadowRoot.querySelectorAll('template[for]').forEach((t) => {
-            processTemplate(
-              t as HTMLTemplateElement,
-              t.getRootNode() as HTMLElement
-            );
+            if (t.parentElement) {
+              processTemplate(t as HTMLTemplateElement);
+            }
           });
         } else {
           // Process any outstanding templates
           document.querySelectorAll('template[for]').forEach((t) => {
-            processTemplate(
-              t as HTMLTemplateElement,
-              t.getRootNode() as HTMLElement
-            );
+            // processTemplate(
+            //   t as HTMLTemplateElement,
+            //   t.getRootNode() as HTMLElement
+            // );
+            if (t.parentElement) {
+              processTemplate(t as HTMLTemplateElement);
+            }
           });
         }
       }
