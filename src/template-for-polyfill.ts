@@ -26,12 +26,9 @@
     target: Document | Element = document
   ): void => {
     // Handle streaming parser.
-    //
     // If the document is still loading and either the template or the
     // processing instruction is the last element in the DOM then it may be
     // incomplete. Return and rely on the mutation observer to reprocess later.
-    //
-    // Prefer readystatechange over DOMContentLoaded so we can start earlier.
     if (
       target instanceof Document &&
       document.readyState == 'loading' &&
@@ -56,26 +53,14 @@
         current = next;
       }
     }
+
+    // Now actually replace the node
     (startNode as HTMLElement).replaceWith(
       templateNode.content.cloneNode(true)
     );
-    templateNode.remove();
-  };
 
-  const findNamedComment = (name: string, target: HTMLElement | null) => {
-    if (!target) return false;
-    const xpath = `//comment()[contains(., 'name=') and contains(., '${name}')]`;
-    const result = document.evaluate(
-      xpath,
-      target,
-      null,
-      XPathResult.ORDERED_NODE_SNAPSHOT_TYPE,
-      null
-    );
-    if (result.snapshotLength > 0) {
-      return result.snapshotItem(result.snapshotLength - 1) as Element;
-    }
-    return null;
+    // Finally remove the template
+    templateNode.remove();
   };
 
   const processTemplate = (
@@ -88,20 +73,14 @@
 
     if (!name) return;
 
-    // Do a basic check to see if the comment likely exists
-    const processingInstruction = findNamedComment(
-      name,
-      template.parentElement
-    );
-    if (!processingInstruction) return;
-
     // We use a TreeWalker instead of regular query selectors to
     // handle comments and processing instructions
     const walker = document.createTreeWalker(
       template.parentElement as Node,
       // Processing Instructions usually are comments in non-supporting
-      // browser, but we also handle the case of actual Processing Instructions
-      // in case browsers ever introduce them for other reasons.
+      // browser, but we also handle the case of actual Processing
+      // Instructions in case browsers ever introduce them for other
+      // reasons without shipping <template for> support
       NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_PROCESSING_INSTRUCTION
     );
 
@@ -114,9 +93,9 @@
       let processingInstructionText: string | null = null;
 
       if (node.nodeType === Node.COMMENT_NODE) {
-        // Processing Instructions are usually handled as comments if patching
-        // is not supported. Patching adds Processing Instructions to HTML for
-        // the first time.
+        // Processing Instructions are usually handled as comments if
+        // <template for> is not supported. Patching adds Processing
+        // Instructions to HTML for the first time.
         processingInstructionText = (node as Comment).data.replace(
           /^\?(start|end|marker)\b/gi,
           (m) => m.toLowerCase()
@@ -202,12 +181,13 @@
     }
   };
 
-  // Add a setHTML monkeypatch
+  // Add a setHTML monkeypatch to process <template for> before
+  // inserting into the DOM
   const preprocessHTML = (html: string) => {
     const parser = new DOMParser();
     const parsedHTML = parser.parseFromString(html, 'text/html');
     parsedHTML.querySelectorAll('template[for]').forEach((t) => {
-      processTemplate(t as HTMLTemplateElement); //, parsedHTML.body);
+      processTemplate(t as HTMLTemplateElement, parsedHTML.body);
     });
     parsedHTML
       .querySelectorAll('template[for]')
@@ -221,9 +201,11 @@
   };
 
   // Handle all existing templates in the HTML
-  document.querySelectorAll('template[for]').forEach(
-    (t) => processTemplate(t as HTMLTemplateElement) //, t.getRootNode() as HTMLElement)
-  );
+  document
+    .querySelectorAll('template[for]')
+    .forEach((t) =>
+      processTemplate(t as HTMLTemplateElement, t.getRootNode() as HTMLElement)
+    );
 
   // Handle any open shadow roots
   document.querySelectorAll('*').forEach((s) => {
@@ -266,13 +248,4 @@
     }
   });
   observer.observe(document, {childList: true, subtree: true});
-
-  // 1. Capture the original function
-  const originalTest = window.test;
-
-  // Check if the original function exists to avoid errors
-  if (typeof originalTest !== 'function') {
-    console.warn('window.test is not a function; cannot monkey patch.');
-    return;
-  }
 })();

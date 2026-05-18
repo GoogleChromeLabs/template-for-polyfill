@@ -15,12 +15,9 @@
     // processing instructions
     const replaceContentWithTemplate = (type, templateNode, startNode, endNode = null, target = document) => {
         // Handle streaming parser.
-        //
         // If the document is still loading and either the template or the
         // processing instruction is the last element in the DOM then it may be
         // incomplete. Return and rely on the mutation observer to reprocess later.
-        //
-        // Prefer readystatechange over DOMContentLoaded so we can start earlier.
         if (target instanceof Document &&
             document.readyState == 'loading' &&
             (!templateNode.nextElementSibling ||
@@ -42,18 +39,10 @@
                 current = next;
             }
         }
+        // Now actually replace the node
         startNode.replaceWith(templateNode.content.cloneNode(true));
+        // Finally remove the template
         templateNode.remove();
-    };
-    const findNamedComment = (name, target) => {
-        if (!target)
-            return false;
-        const xpath = `//comment()[contains(., 'name=') and contains(., '${name}')]`;
-        const result = document.evaluate(xpath, target, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-        if (result.snapshotLength > 0) {
-            return result.snapshotItem(result.snapshotLength - 1);
-        }
-        return null;
     };
     const processTemplate = (template, target = document) => {
         if (!template || template.hasAttribute('data-no-patch'))
@@ -61,16 +50,13 @@
         const name = template.getAttribute('for');
         if (!name)
             return;
-        // Do a basic check to see if the comment likely exists
-        const processingInstruction = findNamedComment(name, template.parentElement);
-        if (!processingInstruction)
-            return;
         // We use a TreeWalker instead of regular query selectors to
         // handle comments and processing instructions
         const walker = document.createTreeWalker(template.parentElement, 
         // Processing Instructions usually are comments in non-supporting
-        // browser, but we also handle the case of actual Processing Instructions
-        // in case browsers ever introduce them for other reasons.
+        // browser, but we also handle the case of actual Processing
+        // Instructions in case browsers ever introduce them for other
+        // reasons without shipping <template for> support
         NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_PROCESSING_INSTRUCTION);
         let node;
         let startNode = null;
@@ -79,9 +65,9 @@
         while ((node = walker.nextNode())) {
             let processingInstructionText = null;
             if (node.nodeType === Node.COMMENT_NODE) {
-                // Processing Instructions are usually handled as comments if patching
-                // is not supported. Patching adds Processing Instructions to HTML for
-                // the first time.
+                // Processing Instructions are usually handled as comments if
+                // <template for> is not supported. Patching adds Processing
+                // Instructions to HTML for the first time.
                 processingInstructionText = node.data.replace(/^\?(start|end|marker)\b/gi, (m) => m.toLowerCase());
             }
             else if (node.nodeType === Node.PROCESSING_INSTRUCTION_NODE) {
@@ -152,12 +138,13 @@
             replaceContentWithTemplate('range', template, startNode, null, target);
         }
     };
-    // Add a setHTML monkeypatch
+    // Add a setHTML monkeypatch to process <template for> before
+    // inserting into the DOM
     const preprocessHTML = (html) => {
         const parser = new DOMParser();
         const parsedHTML = parser.parseFromString(html, 'text/html');
         parsedHTML.querySelectorAll('template[for]').forEach((t) => {
-            processTemplate(t); //, parsedHTML.body);
+            processTemplate(t, parsedHTML.body);
         });
         parsedHTML
             .querySelectorAll('template[for]')
@@ -170,8 +157,7 @@
         originalSetHTML.call(this, processedHTML);
     };
     // Handle all existing templates in the HTML
-    document.querySelectorAll('template[for]').forEach((t) => processTemplate(t) //, t.getRootNode() as HTMLElement)
-    );
+    document.querySelectorAll('template[for]').forEach((t) => processTemplate(t, t.getRootNode()));
     // Handle any open shadow roots
     document.querySelectorAll('*').forEach((s) => {
         if (s.shadowRoot)
