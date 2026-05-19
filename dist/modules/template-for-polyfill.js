@@ -60,7 +60,7 @@
             : template.parentElement;
         // We use a TreeWalker instead of regular query selectors to
         // handle comments and processing instructions
-        const walker = document.createTreeWalker(parent, 
+        const walker = document.createTreeWalker(parent,
         // Processing Instructions usually are comments in non-supporting
         // browser, but we also handle the case of actual Processing
         // Instructions in case browsers ever introduce them for other
@@ -185,7 +185,9 @@
     // document is loading, process one more time on DOMContentLoaded to catch
     // any child templates or processing instructions we missed that were the
     // last elements.
-    window.addEventListener('DOMContentLoaded', () => { processAllOutStandingTemplates(); });
+    window.addEventListener('DOMContentLoaded', () => {
+        processAllOutStandingTemplates();
+    });
     // Watch for, and handle, newly inserted templates or processing instructions in the HTML
     const observer = new MutationObserver((mutations) => {
         for (const mutation of mutations) {
