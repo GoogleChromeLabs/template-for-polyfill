@@ -6,10 +6,7 @@
 
 (() => {
   // Only process the polyfill if needed
-  if (
-    "htmlFor" in HTMLTemplateElement.prototype
-  )
-    return;
+  if ('htmlFor' in HTMLTemplateElement.prototype) return;
 
   console.log('Loading templates for polyfill...');
 
