@@ -7,10 +7,7 @@
 (() => {
   // Only process the polyfill if needed
   if (
-    document
-      .createRange()
-      .createContextualFragment('<?marker name=t><template for=t></template>')
-      .firstChild === null
+    "htmlFor" in HTMLTemplateElement.prototype
   )
     return;
 
