@@ -16,6 +16,9 @@
     "dist",
     "src"
   ],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/"
+  },
   "scripts": {
     "build": "run-s clean build:ts build:js size",
     "build:ts": "tsc -b",

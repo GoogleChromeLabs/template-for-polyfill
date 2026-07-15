@@ -5,10 +5,7 @@
  */
 (() => {
     // Only process the polyfill if needed
-    if (document
-        .createRange()
-        .createContextualFragment('<?marker name=t><template for=t></template>')
-        .firstChild === null)
+    if ('htmlFor' in HTMLTemplateElement.prototype)
         return;
     console.log('Loading templates for polyfill...');
     // Helper function to actually insert the content and cleanup the
@@ -60,12 +57,14 @@
             : template.parentElement;
         // We use a TreeWalker instead of regular query selectors to
         // handle comments and processing instructions
-        const walker = document.createTreeWalker(parent,
-        // Processing Instructions usually are comments in non-supporting
-        // browser, but we also handle the case of actual Processing
-        // Instructions in case browsers ever introduce them for other
-        // reasons without shipping <template for> support
-        NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_PROCESSING_INSTRUCTION);
+        const walker = document.createTreeWalker(
+          parent,
+          // Processing Instructions usually are comments in non-supporting
+          // browser, but we also handle the case of actual Processing
+          // Instructions in case browsers ever introduce them for other
+          // reasons without shipping <template for> support
+          NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_PROCESSING_INSTRUCTION
+        );
         let node;
         let startNode = null;
         let depth = 0;
