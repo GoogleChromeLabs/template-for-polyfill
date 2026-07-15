@@ -1,6 +1,6 @@
 {
   "name": "template-for-polyfill",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A polyfill for the Templates For API",
   "type": "module",
   "main": "dist/template-for-polyfill.cjs",
