@@ -17,7 +17,7 @@
     "src"
   ],
   "publishConfig": {
-    "registry": "https://registry.npmjs.org/"
+    "registry": "https://wombat-dressing-room.appspot.com"
   },
   "scripts": {
     "build": "run-s clean build:ts build:js size",
